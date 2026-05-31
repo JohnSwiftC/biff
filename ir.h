@@ -48,6 +48,15 @@ public:
   // It is crucial that the start of this is a 0,
   // otherwise the pointer cannot be reliabily returned to 0.
   void ouz(size_t addr, const std::string &op);
+
+  // Starts a loop in control flow, with the value at counter
+  // being used for a loop. must be ended with an end loop
+  // see irtest for an example
+  void loop(size_t counter);
+
+  // End a loop in control flow. Must also
+  // know where the loop counter is located
+  void endloop(size_t counter);
 };
 
 #endif

@@ -134,3 +134,17 @@ void IRFileWriter::ouz(size_t addr, const std::string &op) {
 
   move_to_address(addr, 0);
 }
+
+void IRFileWriter::loop(size_t counter) {
+  move_to_address(0, counter);
+
+  m_out << '[';
+
+  move_to_address(counter, 0);
+}
+
+void IRFileWriter::endloop(size_t counter) {
+  move_to_address(0, counter);
+  m_out << "-]";
+  move_to_address(counter, 0);
+}
