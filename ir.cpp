@@ -19,6 +19,19 @@ void IRFileWriter::mov(size_t addr, unsigned char val) {
 }
 
 void IRFileWriter::add(size_t dest, size_t src) {
+
+  if (src == dest) {
+    // actually a pretty cool trick.
+    // because i add one to both the src and the dest,
+    // this ends up almost adding 2xsrc into addr 0,
+    // and then as part of the refill step in normal addition,
+    // moves the value in addr 0 back into src.
+
+    add(0, src);
+
+    return;
+  }
+
   for (auto i{0}; i < src; ++i) {
     m_out << '>';
   }

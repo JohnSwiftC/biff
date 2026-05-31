@@ -10,7 +10,7 @@ int main() {
   writer.mov(1, 2);
   writer.mov(4, 10);
 
-  writer.add(4, 1);
+  writer.add(4, 4);
 
   return 0;
 }
