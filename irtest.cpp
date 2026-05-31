@@ -10,7 +10,10 @@ int main() {
   writer.mov(1, 2);
   writer.mov(4, 10);
 
-  writer.add(4, 4);
+  writer.add(1, 4);
+
+  writer.mov(2, 3);
+  writer.sub(1, 2);
 
   return 0;
 }
