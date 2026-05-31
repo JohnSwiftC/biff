@@ -32,59 +32,32 @@ void IRFileWriter::add(size_t dest, size_t src) {
     return;
   }
 
-  for (auto i{0}; i < src; ++i) {
-    m_out << '>';
-  }
-
-  bool higher = src > dest;
+  move_to_address(0, src);
 
   m_out << '[';
 
-  size_t diff{};
-  if (higher) {
-    diff = src - dest;
-  } else {
-    diff = dest - src;
-  }
-
-  for (auto i{0}; i < diff; ++i) {
-    if (higher) {
-      m_out << '<';
-    } else {
-      m_out << '>';
-    }
-  }
+  move_to_address(src, dest);
 
   m_out << '+';
 
-  for (auto i{0}; i < dest; ++i) {
-    m_out << '<';
-  }
+  move_to_address(dest, 0);
 
   m_out << '+';
 
-  for (auto i{0}; i < src; ++i) {
-    m_out << '>';
-  }
+  move_to_address(0, src);
 
   m_out << '-';
   m_out << ']';
 
-  for (auto i{0}; i < src; ++i) {
-    m_out << '<';
-  }
+  move_to_address(src, 0);
 
   m_out << '[';
 
-  for (auto i{0}; i < src; ++i) {
-    m_out << '>';
-  }
+  move_to_address(0, src);
 
   m_out << '+';
 
-  for (auto i{0}; i < src; ++i) {
-    m_out << '<';
-  }
+  move_to_address(src, 0);
 
   m_out << '-';
   m_out << ']';
@@ -101,59 +74,32 @@ void IRFileWriter::sub(size_t dest, size_t src) {
     return;
   }
 
-  for (auto i{0}; i < src; ++i) {
-    m_out << '>';
-  }
-
-  bool higher = src > dest;
+  move_to_address(0, src);
 
   m_out << '[';
 
-  size_t diff{};
-  if (higher) {
-    diff = src - dest;
-  } else {
-    diff = dest - src;
-  }
-
-  for (auto i{0}; i < diff; ++i) {
-    if (higher) {
-      m_out << '<';
-    } else {
-      m_out << '>';
-    }
-  }
+  move_to_address(src, dest);
 
   m_out << '-';
 
-  for (auto i{0}; i < dest; ++i) {
-    m_out << '<';
-  }
+  move_to_address(dest, 0);
 
   m_out << '+';
 
-  for (auto i{0}; i < src; ++i) {
-    m_out << '>';
-  }
+  move_to_address(0, src);
 
   m_out << '-';
   m_out << ']';
 
-  for (auto i{0}; i < src; ++i) {
-    m_out << '<';
-  }
+  move_to_address(src, 0);
 
   m_out << '[';
 
-  for (auto i{0}; i < src; ++i) {
-    m_out << '>';
-  }
+  move_to_address(0, src);
 
   m_out << '+';
 
-  for (auto i{0}; i < src; ++i) {
-    m_out << '<';
-  }
+  move_to_address(src, 0);
 
   m_out << '-';
   m_out << ']';
