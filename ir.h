@@ -57,6 +57,15 @@ public:
   // End a loop in control flow. Must also
   // know where the loop counter is located
   void endloop(size_t counter);
+
+  // Like loop, does runs the instructions
+  // inbetween if the value at flag addr
+  // is greater than 0. leaves the flag set to
+  // after the statement executes
+  void doif(size_t flag);
+
+  // End an if statement
+  void endif(size_t flag);
 };
 
 #endif

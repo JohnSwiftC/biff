@@ -148,3 +148,17 @@ void IRFileWriter::endloop(size_t counter) {
   m_out << "-]";
   move_to_address(counter, 0);
 }
+
+void IRFileWriter::doif(size_t flag) {
+  move_to_address(0, flag);
+
+  m_out << '[';
+
+  move_to_address(flag, 0);
+}
+
+void IRFileWriter::endif(size_t flag) {
+  move_to_address(0, flag);
+  m_out << "[-]]";
+  move_to_address(flag, 0);
+}
