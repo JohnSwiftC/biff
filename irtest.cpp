@@ -15,5 +15,8 @@ int main() {
   writer.mov(2, 3);
   writer.sub(1, 2);
 
+  writer.insert_string(10, "Hello, World!");
+  writer.ouz(10, ".");
+
   return 0;
 }

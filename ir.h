@@ -32,6 +32,22 @@ public:
   void mov(size_t addr, unsigned char val);
   void add(size_t dest, size_t src);
   void sub(size_t dest, size_t src);
+
+  // Sets a null terminated string starting at dest
+  // within the tape. Must start at a zero, because strings
+  // must have a zero both at the beginning and end,
+  // ensuring it works with ouz. therefore a biff string
+  // has two bytes of padding
+  void insert_string(size_t dest, const std::string &str);
+
+  // Operate until zero. moves to addr, over one, executes
+  // the bf operation (op) in a loop which moves forward
+  // and performs the operation on the current cell until
+  // it hits zero.
+  //
+  // It is crucial that the start of this is a 0,
+  // otherwise the pointer cannot be reliabily returned to 0.
+  void ouz(size_t addr, const std::string &op);
 };
 
 #endif

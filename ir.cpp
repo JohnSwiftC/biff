@@ -106,3 +106,31 @@ void IRFileWriter::sub(size_t dest, size_t src) {
 
   m_out.flush();
 }
+
+void IRFileWriter::insert_string(size_t dest, const std::string &str) {
+  move_to_address(0, dest + 1);
+
+  size_t end{dest + 1};
+  for (const unsigned char &c : str) {
+    for (auto i{0}; i < c; ++i) {
+      m_out << '+';
+    }
+
+    m_out << '>';
+    end++;
+  }
+
+  move_to_address(end, 0);
+}
+
+void IRFileWriter::ouz(size_t addr, const std::string &op) {
+  move_to_address(0, addr);
+
+  m_out << '>';
+  m_out << '[';
+  m_out << op;
+  m_out << ">]<";
+  m_out << "[<]";
+
+  move_to_address(addr, 0);
+}
