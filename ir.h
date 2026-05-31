@@ -30,8 +30,12 @@ public:
   IRFileWriter(std::ostream &out) : m_out{out} {}
 
   void mov(size_t addr, unsigned char val);
+
   void add(size_t dest, size_t src);
+  void add_const(size_t dest, unsigned char val);
+
   void sub(size_t dest, size_t src);
+  void sub_const(size_t dest, unsigned char val);
 
   // Sets a null terminated string starting at dest
   // within the tape. Must start at a zero, because strings

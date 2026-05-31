@@ -45,5 +45,9 @@ int main() {
   writer.endloop(1);
   writer.endloop(2);
 
+  writer.mov(1, 3);
+
+  writer.mov(2, 4);
+
   return 0;
 }

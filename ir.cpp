@@ -3,17 +3,15 @@
 #include <ostream>
 
 void IRFileWriter::mov(size_t addr, unsigned char val) {
-  for (auto i{0}; i < addr; ++i) {
-    m_out << '>';
-  }
+  move_to_address(0, addr);
+
+  m_out << "[-]";
 
   for (auto i{0}; i < val; ++i) {
     m_out << '+';
   }
 
-  for (auto i{0}; i < addr; ++i) {
-    m_out << '<';
-  }
+  move_to_address(addr, 0);
 
   m_out.flush();
 }
@@ -65,6 +63,18 @@ void IRFileWriter::add(size_t dest, size_t src) {
   m_out.flush();
 }
 
+void IRFileWriter::add_const(size_t dest, unsigned char val) {
+  move_to_address(0, dest);
+
+  for (auto i{0}; i < val; ++i) {
+    m_out << '+';
+  }
+
+  move_to_address(dest, 0);
+
+  m_out.flush();
+}
+
 void IRFileWriter::sub(size_t dest, size_t src) {
 
   if (src == dest) {
@@ -103,6 +113,18 @@ void IRFileWriter::sub(size_t dest, size_t src) {
 
   m_out << '-';
   m_out << ']';
+
+  m_out.flush();
+}
+
+void IRFileWriter::sub_const(size_t dest, unsigned char val) {
+  move_to_address(0, dest);
+
+  for (auto i{0}; i < val; ++i) {
+    m_out << '-';
+  }
+
+  move_to_address(dest, 0);
 
   m_out.flush();
 }
