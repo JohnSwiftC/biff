@@ -45,9 +45,16 @@ int main() {
   writer.endloop(1);
   writer.endloop(2);
 
+  writer.mov(3, 0);
   writer.mov(1, 3);
-
+  writer.loop(1);
   writer.mov(2, 4);
+  writer.loop(2);
+
+  writer.add_const(3, 1);
+
+  writer.endloop(2);
+  writer.endloop(1);
 
   return 0;
 }
