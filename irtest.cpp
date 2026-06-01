@@ -45,6 +45,7 @@ int main() {
   writer.endloop(1);
   writer.endloop(2);
 
+  // Finding 3 * 4 with loops
   writer.mov(3, 0);
   writer.mov(1, 3);
   writer.loop(1);
@@ -55,6 +56,13 @@ int main() {
 
   writer.endloop(2);
   writer.endloop(1);
+
+  // Division is also possible,
+  // set a counter to 0, we loop on the
+  // numerator, every iteration subtract the divisor and
+  // add one to our answer counter. Then to keep addresses
+  // coherant, mov 0 into the numerator address, add the result,
+  // mov 0 into the result.
 
   return 0;
 }
