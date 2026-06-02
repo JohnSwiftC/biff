@@ -220,7 +220,7 @@ void IRFileWriter::neq(size_t a, size_t b, size_t flag) {
 
   doif(flag);
 
-  add_const(flag + 1, a);
+  add_const(flag + 1, 1);
 
   endif(flag);
 
