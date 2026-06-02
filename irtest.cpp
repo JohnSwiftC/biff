@@ -45,17 +45,12 @@ int main() {
   writer.endloop(1);
   writer.endloop(2);
 
-  // Finding 3 * 4 with loops
-  writer.mov(3, 0);
+  // multiply 3 and 4 with mul,
+  // the result ends up in dest.
   writer.mov(1, 3);
-  writer.loop(1);
   writer.mov(2, 4);
-  writer.loop(2);
 
-  writer.add_const(3, 1);
-
-  writer.endloop(2);
-  writer.endloop(1);
+  writer.mul(1, 2, 3, 4);
 
   // Division is also possible,
   // set a counter to 0, we loop on the

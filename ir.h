@@ -70,6 +70,11 @@ public:
 
   // End an if statement
   void endif(size_t flag);
+
+  // Mul must know where it can use two addresses to act as counters.
+  // these counter are reset to zero after the end of the loop,
+  // so this memory is completely released following the end of the operation
+  void mul(size_t dest, size_t src, size_t counter_one, size_t counter_two);
 };
 
 #endif

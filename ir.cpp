@@ -184,3 +184,24 @@ void IRFileWriter::endif(size_t flag) {
   m_out << "[-]]";
   move_to_address(flag, 0);
 }
+
+void IRFileWriter::mul(size_t dest, size_t src, size_t counter_one,
+                       size_t counter_two) {
+
+  // Sets moves the value of dest to counter_one,
+  // and sets dest to 0
+  mov(counter_one, 0);
+  add(counter_one, dest);
+  mov(dest, 0);
+
+  mov(counter_two, 0);
+
+  loop(counter_one);
+  add(counter_two, src);
+  loop(counter_two);
+
+  add_const(dest, 1);
+
+  endloop(counter_two);
+  endloop(counter_one);
+}
