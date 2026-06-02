@@ -1,0 +1,15 @@
+MOV: 1, 3
+MOV: 2, 4
+
+MUL: 1, 2, 3, 4
+MOV: 3, 13
+
+NEQ: 1, 3, 4
+
+DOIF: 4
+
+INSERT_STRING: 5, "Biff IR!"
+
+ENDIF: 4
+
+OUZ: 5, .
