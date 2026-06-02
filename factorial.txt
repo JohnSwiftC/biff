@@ -1,0 +1,10 @@
+MOV: 1, 1
+MOV: 2, 1
+MOV: 3, 4
+
+LOOP: 3
+
+MUL: 1, 2, 4, 5
+ADD_CONST: 2, 1
+
+ENDLOOP: 3
