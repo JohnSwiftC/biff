@@ -205,3 +205,29 @@ void IRFileWriter::mul(size_t dest, size_t src, size_t counter_one,
   endloop(counter_two);
   endloop(counter_one);
 }
+
+// div hopefully
+
+// requires two bytes.
+// this implementation is objectively bad,
+// but it works for now. can be havily optimized
+// to easily remove unneeded returns to addr 0
+void IRFileWriter::neq(size_t a, size_t b, size_t flag) {
+  mov(flag, 0);
+  add(flag, b);
+
+  sub(flag, a);
+
+  doif(flag);
+
+  add_const(flag + 1, a);
+
+  endif(flag);
+
+  doif(flag + 1);
+
+  mov(flag, 0);
+  add_const(flag, 1);
+
+  endif(flag + 1);
+}

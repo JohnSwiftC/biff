@@ -75,6 +75,16 @@ public:
   // these counter are reset to zero after the end of the loop,
   // so this memory is completely released following the end of the operation
   void mul(size_t dest, size_t src, size_t counter_one, size_t counter_two);
+
+  // NOT EQUAL between a and b.
+  // sets flag to ONE if a and b are not equal
+  // so flag can be used with doif
+  //
+  // ALSO, this REQUIRES two bytes, the
+  // byte after flag MUST be zero
+  void neq(size_t a, size_t b, size_t flag);
+
+  // Some divison impl later
 };
 
 #endif
