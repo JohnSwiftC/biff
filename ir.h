@@ -105,7 +105,12 @@ public:
   // a = a % b
   void mod(size_t a, size_t b, size_t dump);
 
-  // Some divison impl later
+  // Display a number as a string
+  // this is expensive af
+  //
+  // Requires 8 zeroed bytes at dump. These are all
+  // freed when the operation ends
+  void itoa(size_t addr, size_t dump);
 };
 
 #endif

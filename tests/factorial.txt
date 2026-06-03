@@ -8,3 +8,11 @@ MUL: 1, 2, 4, 5
 ADD_CONST: 2, 1
 
 ENDLOOP: 3
+
+# At this point, 4! is held in two. lets print it
+
+ITOA: 1, 4
+
+INSERT_STRING: 4, " is 4 fact!"
+
+OUZ: 4, .

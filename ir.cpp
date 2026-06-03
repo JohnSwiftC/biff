@@ -319,3 +319,19 @@ void IRFileWriter::mod(size_t a, size_t b, size_t dump) {
   add(a, dump + 2);
   mov(dump + 2, 0);
 }
+
+void IRFileWriter::itoa(size_t addr, size_t dump) {
+  add(dump, addr);
+
+  move_to_address(0, dump);
+
+  // An algorithm from esolangs.org. This can also be written
+  // with the current instruction set, but i believe this completes it faster
+  m_out << ">[-]>[-]+>[-]+<[>[-<-<<[->+>+<<]>[-<+>]>>]++++++++++>[-]+>[-]>[-]>[-"
+           "]<<<<<[->-[>+>>]>[[-<+>]+>+>>]<<<<<]>>-[-<<+>>]<[-]++++++++[-<+++++"
+           "+>]>>[-<<+>>]<<]<[.[-]<]<";
+
+  m_out << "[-]";
+
+  move_to_address(dump, 0);
+}
