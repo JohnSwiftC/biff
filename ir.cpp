@@ -337,6 +337,10 @@ void IRFileWriter::less(size_t a, size_t b, size_t flag) {
   mov(temp1 + 2, 0);
 }
 
+void IRFileWriter::greater(size_t a, size_t b, size_t flag) {
+  less(b, a, flag);
+}
+
 void IRFileWriter::div(size_t a, size_t b, size_t dump) {
 
   if (b == 0) {

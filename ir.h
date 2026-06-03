@@ -95,6 +95,10 @@ public:
   // flag will be ONE if a < b, ZERO else
   void less(size_t a, size_t b, size_t flag);
 
+  // Has the same 6 byte flag requirement as less,
+  // it just an inverted less, flag will be ONE if a > b
+  void greater(size_t a, size_t b, size_t flag);
+
   // This is very clever, and is taken from
   // an esolang wiki algorithm. Finds both the division
   // and modulus in a divion
