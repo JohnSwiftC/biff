@@ -7,7 +7,7 @@ class IRFileWriter {
 private:
   std::ostream &m_out;
 
-  void move_to_address(size_t from, size_t to) {
+  void shift(size_t from, size_t to) {
     bool higher = to > from;
 
     size_t diff{};
@@ -90,6 +90,10 @@ public:
 
   // sets flag to ONE if a and b are equal
   void eq(size_t a, size_t b, size_t flag);
+
+  // flag here requires 6 zero bytes
+  // flag will be ONE if a < b, ZERO else
+  void less(size_t a, size_t b, size_t flag);
 
   // This is very clever, and is taken from
   // an esolang wiki algorithm. Finds both the division

@@ -179,6 +179,9 @@ void compile_line(IRFileWriter &w, const std::string &raw) {
   } else if (name == "neq") {
     require(args, 3, "neq");
     w.neq(parse_addr(args[0]), parse_addr(args[1]), parse_addr(args[2]));
+  } else if (name == "less") {
+    require(args, 3, "less");
+    w.less(parse_addr(args[0]), parse_addr(args[1]), parse_addr(args[2]));
   } else if (name == "flip") {
     require(args, 1, "flip");
     w.flip(parse_addr(args[0]));

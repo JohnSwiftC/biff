@@ -4,7 +4,7 @@
 #include <stdexcept>
 
 void IRFileWriter::mov(size_t addr, unsigned char val) {
-  move_to_address(0, addr);
+  shift(0, addr);
 
   m_out << "[-]";
 
@@ -12,7 +12,7 @@ void IRFileWriter::mov(size_t addr, unsigned char val) {
     m_out << '+';
   }
 
-  move_to_address(addr, 0);
+  shift(addr, 0);
 
   m_out.flush();
 }
@@ -31,32 +31,32 @@ void IRFileWriter::add(size_t dest, size_t src) {
     return;
   }
 
-  move_to_address(0, src);
+  shift(0, src);
 
   m_out << '[';
 
-  move_to_address(src, dest);
+  shift(src, dest);
 
   m_out << '+';
 
-  move_to_address(dest, 0);
+  shift(dest, 0);
 
   m_out << '+';
 
-  move_to_address(0, src);
+  shift(0, src);
 
   m_out << '-';
   m_out << ']';
 
-  move_to_address(src, 0);
+  shift(src, 0);
 
   m_out << '[';
 
-  move_to_address(0, src);
+  shift(0, src);
 
   m_out << '+';
 
-  move_to_address(src, 0);
+  shift(src, 0);
 
   m_out << '-';
   m_out << ']';
@@ -65,13 +65,13 @@ void IRFileWriter::add(size_t dest, size_t src) {
 }
 
 void IRFileWriter::add_const(size_t dest, unsigned char val) {
-  move_to_address(0, dest);
+  shift(0, dest);
 
   for (auto i{0}; i < val; ++i) {
     m_out << '+';
   }
 
-  move_to_address(dest, 0);
+  shift(dest, 0);
 
   m_out.flush();
 }
@@ -85,32 +85,32 @@ void IRFileWriter::sub(size_t dest, size_t src) {
     return;
   }
 
-  move_to_address(0, src);
+  shift(0, src);
 
   m_out << '[';
 
-  move_to_address(src, dest);
+  shift(src, dest);
 
   m_out << '-';
 
-  move_to_address(dest, 0);
+  shift(dest, 0);
 
   m_out << '+';
 
-  move_to_address(0, src);
+  shift(0, src);
 
   m_out << '-';
   m_out << ']';
 
-  move_to_address(src, 0);
+  shift(src, 0);
 
   m_out << '[';
 
-  move_to_address(0, src);
+  shift(0, src);
 
   m_out << '+';
 
-  move_to_address(src, 0);
+  shift(src, 0);
 
   m_out << '-';
   m_out << ']';
@@ -119,19 +119,19 @@ void IRFileWriter::sub(size_t dest, size_t src) {
 }
 
 void IRFileWriter::sub_const(size_t dest, unsigned char val) {
-  move_to_address(0, dest);
+  shift(0, dest);
 
   for (auto i{0}; i < val; ++i) {
     m_out << '-';
   }
 
-  move_to_address(dest, 0);
+  shift(dest, 0);
 
   m_out.flush();
 }
 
 void IRFileWriter::insert_string(size_t dest, const std::string &str) {
-  move_to_address(0, dest + 1);
+  shift(0, dest + 1);
 
   size_t end{dest + 1};
   for (const unsigned char &c : str) {
@@ -143,11 +143,11 @@ void IRFileWriter::insert_string(size_t dest, const std::string &str) {
     end++;
   }
 
-  move_to_address(end, 0);
+  shift(end, 0);
 }
 
 void IRFileWriter::ouz(size_t addr, const std::string &op) {
-  move_to_address(0, addr);
+  shift(0, addr);
 
   m_out << '>';
   m_out << '[';
@@ -155,35 +155,35 @@ void IRFileWriter::ouz(size_t addr, const std::string &op) {
   m_out << ">]<";
   m_out << "[<]";
 
-  move_to_address(addr, 0);
+  shift(addr, 0);
 }
 
 void IRFileWriter::loop(size_t counter) {
-  move_to_address(0, counter);
+  shift(0, counter);
 
   m_out << '[';
 
-  move_to_address(counter, 0);
+  shift(counter, 0);
 }
 
 void IRFileWriter::endloop(size_t counter) {
-  move_to_address(0, counter);
+  shift(0, counter);
   m_out << "-]";
-  move_to_address(counter, 0);
+  shift(counter, 0);
 }
 
 void IRFileWriter::doif(size_t flag) {
-  move_to_address(0, flag);
+  shift(0, flag);
 
   m_out << '[';
 
-  move_to_address(flag, 0);
+  shift(flag, 0);
 }
 
 void IRFileWriter::endif(size_t flag) {
-  move_to_address(0, flag);
+  shift(0, flag);
   m_out << "[-]]";
-  move_to_address(flag, 0);
+  shift(flag, 0);
 }
 
 void IRFileWriter::mul(size_t dest, size_t src, size_t counter_one,
@@ -220,27 +220,27 @@ void IRFileWriter::flip(size_t addr) {
 
   m_out << '+';
 
-  move_to_address(0, addr);
+  shift(0, addr);
 
   m_out << '[';
 
-  move_to_address(addr, 0);
+  shift(addr, 0);
 
   m_out << '-';
 
-  move_to_address(0, addr);
+  shift(0, addr);
 
   m_out << "[-]]";
 
-  move_to_address(addr, 0);
+  shift(addr, 0);
 
   m_out << "[-";
 
-  move_to_address(0, addr);
+  shift(0, addr);
 
   m_out << '+';
 
-  move_to_address(addr, 0);
+  shift(addr, 0);
 
   m_out << ']';
 }
@@ -276,6 +276,112 @@ void IRFileWriter::eq(size_t a, size_t b, size_t flag) {
   flip(flag);
 }
 
+void IRFileWriter::less(size_t a, size_t b, size_t flag) {
+  size_t x = flag;
+  size_t y = flag + 1;
+  size_t temp0 = flag + 2;
+  size_t temp1 = flag + 3; // This is actually three consecutive cells
+
+  add(x, a);
+  add(y, b);
+
+  shift(0, temp0);
+
+  m_out << "[-]";
+
+  shift(temp0, temp1);
+
+  m_out << "[-]>[-]+>[-]<<";
+
+  shift(temp1, y);
+
+  m_out << '[';
+
+  shift(y, temp0);
+
+  m_out << '+';
+
+  shift(temp0, temp1);
+
+  m_out << '+';
+
+  shift(temp1, y);
+
+  m_out << "-]";
+
+  shift(y, temp0);
+
+  m_out << '[';
+
+  shift(temp0, y);
+
+  m_out << '+';
+
+  shift(y, temp0);
+
+  m_out << "-]";
+
+  shift(temp0, x);
+
+  m_out << '[';
+
+  shift(x, temp0);
+
+  m_out << '+';
+
+  shift(temp0, x);
+
+  m_out << "-]+";
+
+  shift(x, temp1);
+
+  m_out << "[>-]>[<";
+
+  shift(temp1, x);
+
+  m_out << '-';
+
+  shift(x, temp0);
+
+  m_out << "[-]";
+
+  shift(temp0, temp1);
+
+  m_out << ">->]<+<";
+
+  shift(temp1, temp0);
+
+  m_out << '[';
+
+  shift(temp0, temp1);
+
+  m_out << "-[>-]>[<";
+
+  shift(temp1, x);
+
+  m_out << '-';
+
+  shift(x, temp0);
+
+  m_out << "[-]+";
+
+  shift(temp0, temp1);
+
+  m_out << ">->]<+<";
+
+  shift(temp1, temp0);
+
+  m_out << "-]";
+
+  shift(temp0, 0);
+
+  mov(y, 0);
+  mov(temp0, 0);
+  mov(temp1, 0);
+  mov(temp1 + 1, 0);
+  mov(temp1 + 2, 0);
+}
+
 void IRFileWriter::div(size_t a, size_t b, size_t dump) {
 
   if (b == 0) {
@@ -285,11 +391,11 @@ void IRFileWriter::div(size_t a, size_t b, size_t dump) {
   add(dump, a);
   add(dump + 1, b);
 
-  move_to_address(0, dump);
+  shift(0, dump);
 
   m_out << "[->[->+>>]>[<<+>>[-<+>]>+>>]<<<<<]>[>>>]>[[-<+>]>+>>]<<<<<";
 
-  move_to_address(dump, 0);
+  shift(dump, 0);
   mov(a, 0);
   mov(dump + 1, 0);
   mov(dump + 2, 0);
@@ -307,11 +413,11 @@ void IRFileWriter::mod(size_t a, size_t b, size_t dump) {
   add(dump, a);
   add(dump + 1, b);
 
-  move_to_address(0, dump);
+  shift(0, dump);
 
   m_out << "[->[->+>>]>[<<+>>[-<+>]>+>>]<<<<<]>[>>>]>[[-<+>]>+>>]<<<<<";
 
-  move_to_address(dump, 0);
+  shift(dump, 0);
   mov(a, 0);
   mov(dump + 1, 0);
   mov(dump + 3, 0);
@@ -323,15 +429,16 @@ void IRFileWriter::mod(size_t a, size_t b, size_t dump) {
 void IRFileWriter::itoa(size_t addr, size_t dump) {
   add(dump, addr);
 
-  move_to_address(0, dump);
+  shift(0, dump);
 
   // An algorithm from esolangs.org. This can also be written
   // with the current instruction set, but i believe this completes it faster
-  m_out << ">[-]>[-]+>[-]+<[>[-<-<<[->+>+<<]>[-<+>]>>]++++++++++>[-]+>[-]>[-]>[-"
-           "]<<<<<[->-[>+>>]>[[-<+>]+>+>>]<<<<<]>>-[-<<+>>]<[-]++++++++[-<+++++"
-           "+>]>>[-<<+>>]<<]<[.[-]<]<";
+  m_out
+      << ">[-]>[-]+>[-]+<[>[-<-<<[->+>+<<]>[-<+>]>>]++++++++++>[-]+>[-]>[-]>[-"
+         "]<<<<<[->-[>+>>]>[[-<+>]+>+>>]<<<<<]>>-[-<<+>>]<[-]++++++++[-<+++++"
+         "+>]>>[-<<+>>]<<]<[.[-]<]<";
 
   m_out << "[-]";
 
-  move_to_address(dump, 0);
+  shift(dump, 0);
 }
