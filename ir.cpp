@@ -284,95 +284,50 @@ void IRFileWriter::less(size_t a, size_t b, size_t flag) {
 
   add(x, a);
   add(y, b);
-
   shift(0, temp0);
-
   m_out << "[-]";
-
   shift(temp0, temp1);
-
   m_out << "[-]>[-]+>[-]<<";
-
   shift(temp1, y);
-
   m_out << '[';
-
   shift(y, temp0);
-
   m_out << '+';
-
   shift(temp0, temp1);
-
   m_out << '+';
-
   shift(temp1, y);
-
   m_out << "-]";
-
   shift(y, temp0);
-
   m_out << '[';
-
   shift(temp0, y);
-
   m_out << '+';
-
   shift(y, temp0);
-
   m_out << "-]";
-
   shift(temp0, x);
-
   m_out << '[';
-
   shift(x, temp0);
-
   m_out << '+';
-
   shift(temp0, x);
-
   m_out << "-]+";
-
   shift(x, temp1);
-
   m_out << "[>-]>[<";
-
   shift(temp1, x);
-
   m_out << '-';
-
   shift(x, temp0);
-
   m_out << "[-]";
-
   shift(temp0, temp1);
-
   m_out << ">->]<+<";
-
   shift(temp1, temp0);
-
   m_out << '[';
-
   shift(temp0, temp1);
-
   m_out << "-[>-]>[<";
-
   shift(temp1, x);
-
   m_out << '-';
-
   shift(x, temp0);
-
   m_out << "[-]+";
-
   shift(temp0, temp1);
-
   m_out << ">->]<+<";
-
   shift(temp1, temp0);
-
   m_out << "-]";
-
   shift(temp0, 0);
 
   mov(y, 0);
