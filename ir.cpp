@@ -401,3 +401,8 @@ void IRFileWriter::itoa(size_t addr, size_t dump) {
 
   shift(dump, 0);
 }
+
+void IRFileWriter::set_virtual_base(size_t base) {
+  shift(m_base, base);
+  m_base = base;
+}

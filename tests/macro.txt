@@ -24,3 +24,33 @@ use: count_to_three
 # Reuse `bump` again on its own.
 use: bump
 use: bump
+
+# Say I want to find a factorial, 5!, in a function call
+# we can change the addresses used in the function itself,
+# so we set a new virtual address for the event
+
+# Expects the input value in addr 3
+def: factorial
+
+MOV: 1, 1
+MOV: 2, 1
+
+LOOP: 3
+
+MUL: 1, 2, 4, 5
+ADD_CONST: 2, 1
+
+ENDLOOP: 3
+  
+end
+
+# base for function call
+set_virtual_base: 5
+
+# function expacts arg in 3, so we mov in 5 (for 5 factorial)
+# within the virtual base
+mov: 3, 5
+use: factorial
+
+set_virtual_base: 0
+

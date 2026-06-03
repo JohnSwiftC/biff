@@ -9,7 +9,7 @@ ADD_CONST: 2, 1
 
 ENDLOOP: 3
 
-# At this point, 4! is held in two. lets print it
+# At this point, 4! is held in one. lets print it
 
 ITOA: 1, 4
 

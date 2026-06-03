@@ -202,6 +202,9 @@ void compile_line(IRFileWriter &w, const std::string &raw) {
   } else if (name == "itoa") {
     require(args, 2, "itoa");
     w.itoa(parse_addr(args[0]), parse_addr(args[1]));
+  } else if (name == "set_virtual_base") {
+    require(args, 1, "set_virtual_base");
+    w.set_virtual_base(parse_addr(args[0]));
   } else {
     throw std::runtime_error("unknown instruction: '" + name + "'");
   }

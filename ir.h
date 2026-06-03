@@ -6,8 +6,13 @@
 class IRFileWriter {
 private:
   std::ostream &m_out;
+  size_t m_base;
 
   void shift(size_t from, size_t to) {
+
+    from += m_base;
+    to += m_base;
+
     bool higher = to > from;
 
     size_t diff{};
@@ -27,7 +32,7 @@ private:
   }
 
 public:
-  IRFileWriter(std::ostream &out) : m_out{out} {}
+  IRFileWriter(std::ostream &out) : m_out{out}, m_base{} {}
 
   void mov(size_t addr, unsigned char val);
 
@@ -119,6 +124,11 @@ public:
   // Requires 8 zeroed bytes at dump. These are all
   // freed when the operation ends
   void itoa(size_t addr, size_t dump);
+
+  // This is going to be used for function calls.
+  // essentially, this gives you a virtual address space
+  // by incrementing what value the irwriter believes to be addr 0
+  void set_virtual_base(size_t base);
 };
 
 #endif
