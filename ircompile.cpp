@@ -4,6 +4,8 @@
 #include <cstddef>
 #include <fstream>
 #include <iostream>
+#include <map>
+#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -202,6 +204,85 @@ void compile_line(IRFileWriter &w, const std::string &raw) {
   }
 }
 
+class Compiler {
+public:
+  explicit Compiler(IRFileWriter &w) : writer_(w) {}
+
+  void feed(const std::string &raw) {
+    std::string line = trim(raw);
+
+    size_t colon = line.find(':');
+    std::string head = to_lower(
+        trim(colon == std::string::npos ? line : line.substr(0, colon)));
+    std::string rest = colon == std::string::npos ? "" : line.substr(colon + 1);
+
+    if (defining_) {
+      if (head == "end") {
+        defining_ = false;
+        return;
+      }
+      if (head == "def") {
+        throw std::runtime_error("nested 'def' is not allowed (inside '" +
+                                 current_ + "')");
+      }
+      macros_[current_].push_back(raw);
+      return;
+    }
+
+    if (head == "def") {
+      std::string label = to_lower(trim(rest));
+      if (label.empty()) {
+        throw std::runtime_error("'def' requires a label name");
+      }
+      current_ = label;
+      macros_[label].clear();
+      defining_ = true;
+      return;
+    }
+
+    if (head == "use") {
+      expand(to_lower(trim(rest)));
+      return;
+    }
+
+    compile_line(writer_, line);
+  }
+
+  // Call once after the last line to catch a definition that was never closed.
+  void finish() const {
+    if (defining_) {
+      throw std::runtime_error("unterminated 'def: " + current_ +
+                               "' (missing 'end')");
+    }
+  }
+
+private:
+  void expand(const std::string &label) {
+    if (label.empty()) {
+      throw std::runtime_error("'use' requires a label name");
+    }
+    auto it = macros_.find(label);
+    if (it == macros_.end()) {
+      throw std::runtime_error("unknown label: '" + label + "'");
+    }
+    if (!active_.insert(label).second) {
+      throw std::runtime_error("recursive use of label: '" + label + "'");
+    }
+    // Copy the body so expanding it can't be invalidated by new definitions.
+    std::vector<std::string> body = it->second;
+    for (const std::string &body_line : body) {
+      feed(body_line);
+    }
+    active_.erase(label);
+  }
+
+  IRFileWriter &writer_;
+  std::map<std::string, std::vector<std::string>> macros_;
+  std::set<std::string> active_;
+  std::string current_;
+  bool defining_ = false;
+};
+
 } // namespace
 
 int main(int argc, char **argv) {
@@ -229,17 +310,25 @@ int main(int argc, char **argv) {
   }
 
   IRFileWriter writer{*out};
+  Compiler compiler{writer};
 
   std::string line;
   size_t lineno = 0;
   while (std::getline(*in, line)) {
     ++lineno;
     try {
-      compile_line(writer, line);
+      compiler.feed(line);
     } catch (const std::exception &e) {
       std::cerr << "error on line " << lineno << ": " << e.what() << "\n";
       return 1;
     }
+  }
+
+  try {
+    compiler.finish();
+  } catch (const std::exception &e) {
+    std::cerr << "error: " << e.what() << "\n";
+    return 1;
   }
 
   return 0;

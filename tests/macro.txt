@@ -1,0 +1,26 @@
+# Zero two cells and seed them with 1.
+def: setup
+  MOV: 1, 1
+  MOV: 2, 0
+end
+
+# Add one to cell 2.
+def: bump
+  ADD_CONST: 2, 1
+end
+
+# A macro built out of other macros, with a loop in the body.
+def: count_to_three
+  use: setup
+  MOV: 3, 3
+  LOOP: 3
+  use: bump
+  ENDLOOP: 3
+end
+
+# Use them. `count_to_three` expands to: setup, then the loop wrapping `bump`.
+use: count_to_three
+
+# Reuse `bump` again on its own.
+use: bump
+use: bump
