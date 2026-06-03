@@ -1,0 +1,22 @@
+MOV: 3, 12
+MOV: 4, 11
+
+NEQ: 3, 4, 5
+
+DOIF: 5
+
+INSERT_STRING: 6, "Biff IR!"
+
+ENDIF: 5
+
+MOV: 5, 0
+
+EQ: 3, 4, 5
+
+DOIF: 5
+
+INSERT_STRING: 6, "Biff IR..."
+
+ENDIF: 5
+
+OUZ: 6, .

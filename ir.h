@@ -88,6 +88,9 @@ public:
   // byte after flag MUST be zero
   void neq(size_t a, size_t b, size_t flag);
 
+  // sets flag to ONE if a and b are equal
+  void eq(size_t a, size_t b, size_t flag);
+
   // Some divison impl later
 };
 

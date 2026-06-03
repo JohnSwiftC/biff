@@ -208,6 +208,13 @@ void IRFileWriter::mul(size_t dest, size_t src, size_t counter_one,
 
 // div hopefully
 
+// Set addr 0 to one,
+// if there is a value in addr,
+// change addr 0 to zero, and set addr to 0
+// because of the loop, nothing happens if
+// addr is already 0
+//
+// then, if addr 0 has a value, add to addr. essentially flips
 void IRFileWriter::flip(size_t addr) {
 
   m_out << '+';
@@ -259,4 +266,11 @@ void IRFileWriter::neq(size_t a, size_t b, size_t flag) {
   add_const(flag, 1);
 
   endif(flag + 1);
+}
+
+// Literally just flips the output flag
+// outputted by neq
+void IRFileWriter::eq(size_t a, size_t b, size_t flag) {
+  neq(a, b, flag);
+  flip(flag);
 }

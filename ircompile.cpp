@@ -192,6 +192,10 @@ void compile_line(IRFileWriter &w, const std::string &raw) {
     auto args = split_args(rest);
     require(args, 1, "flip");
     w.flip(parse_addr(args[0]));
+  } else if (name == "eq") {
+    auto args = split_args(rest);
+    require(args, 3, "eq");
+    w.eq(parse_addr(args[0]), parse_addr(args[1]), parse_addr(args[2]));
   } else {
     throw std::runtime_error("unknown instruction: '" + name + "'");
   }
