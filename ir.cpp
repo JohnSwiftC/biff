@@ -274,3 +274,20 @@ void IRFileWriter::eq(size_t a, size_t b, size_t flag) {
   neq(a, b, flag);
   flip(flag);
 }
+
+void IRFileWriter::div(size_t a, size_t b, size_t dump) {
+  add(dump, a);
+  add(dump + 1, b);
+
+  move_to_address(0, dump);
+
+  m_out << "[->[->+>>]>[<<+>>[-<+>]>+>>]<<<<<]>[>>>]>[[-<+>]>+>>]<<<<<";
+
+  move_to_address(dump, 0);
+  mov(a, 0);
+  mov(dump + 1, 0);
+  mov(dump + 2, 0);
+
+  add(a, dump + 3);
+  mov(dump + 3, 0);
+}

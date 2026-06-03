@@ -91,6 +91,15 @@ public:
   // sets flag to ONE if a and b are equal
   void eq(size_t a, size_t b, size_t flag);
 
+  // This is very clever, and is taken from
+  // an esolang wiki algorithm. Finds both the division
+  // and modulus in a divion
+  //
+  // This REQUIRES 4 empty bytes to function correctly
+  // starting at dump. these will be zeroed once the operation
+  // is complete
+  void div(size_t a, size_t b, size_t dump);
+
   // Some divison impl later
 };
 
