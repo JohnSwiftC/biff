@@ -76,6 +76,10 @@ public:
   // so this memory is completely released following the end of the operation
   void mul(size_t dest, size_t src, size_t counter_one, size_t counter_two);
 
+  // Flips the value in a cell. Any non-zero value will become zero,
+  // any zero cell will become one
+  void flip(size_t addr);
+
   // NOT EQUAL between a and b.
   // sets flag to ONE if a and b are not equal
   // so flag can be used with doif

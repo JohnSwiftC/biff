@@ -208,6 +208,35 @@ void IRFileWriter::mul(size_t dest, size_t src, size_t counter_one,
 
 // div hopefully
 
+void IRFileWriter::flip(size_t addr) {
+
+  m_out << '+';
+
+  move_to_address(0, addr);
+
+  m_out << '[';
+
+  move_to_address(addr, 0);
+
+  m_out << '-';
+
+  move_to_address(0, addr);
+
+  m_out << "[-]]";
+
+  move_to_address(addr, 0);
+
+  m_out << "[-";
+
+  move_to_address(0, addr);
+
+  m_out << '+';
+
+  move_to_address(addr, 0);
+
+  m_out << ']';
+}
+
 // requires two bytes.
 // this implementation is objectively bad,
 // but it works for now. can be havily optimized
