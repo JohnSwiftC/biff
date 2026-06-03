@@ -135,24 +135,21 @@ void compile_line(IRFileWriter &w, const std::string &raw) {
       to_lower(trim(colon == std::string::npos ? line : line.substr(0, colon)));
   std::string rest = colon == std::string::npos ? "" : line.substr(colon + 1);
 
+  std::vector<std::string> args = split_args(rest);
+
   if (name == "mov") {
-    auto args = split_args(rest);
     require(args, 2, "mov");
     w.mov(parse_addr(args[0]), parse_byte(args[1]));
   } else if (name == "add") {
-    auto args = split_args(rest);
     require(args, 2, "add");
     w.add(parse_addr(args[0]), parse_addr(args[1]));
   } else if (name == "add_const") {
-    auto args = split_args(rest);
     require(args, 2, "add_const");
     w.add_const(parse_addr(args[0]), parse_byte(args[1]));
   } else if (name == "sub") {
-    auto args = split_args(rest);
     require(args, 2, "sub");
     w.sub(parse_addr(args[0]), parse_addr(args[1]));
   } else if (name == "sub_const") {
-    auto args = split_args(rest);
     require(args, 2, "sub_const");
     w.sub_const(parse_addr(args[0]), parse_byte(args[1]));
   } else if (name == "insert_string") {
@@ -164,42 +161,36 @@ void compile_line(IRFileWriter &w, const std::string &raw) {
     auto [addr, op] = split_first(rest);
     w.ouz(parse_addr(addr), parse_string(op));
   } else if (name == "loop") {
-    auto args = split_args(rest);
     require(args, 1, "loop");
     w.loop(parse_addr(args[0]));
   } else if (name == "endloop") {
-    auto args = split_args(rest);
     require(args, 1, "endloop");
     w.endloop(parse_addr(args[0]));
   } else if (name == "doif") {
-    auto args = split_args(rest);
     require(args, 1, "doif");
     w.doif(parse_addr(args[0]));
   } else if (name == "endif") {
-    auto args = split_args(rest);
     require(args, 1, "endif");
     w.endif(parse_addr(args[0]));
   } else if (name == "mul") {
-    auto args = split_args(rest);
     require(args, 4, "mul");
     w.mul(parse_addr(args[0]), parse_addr(args[1]), parse_addr(args[2]),
           parse_addr(args[3]));
   } else if (name == "neq") {
-    auto args = split_args(rest);
     require(args, 3, "neq");
     w.neq(parse_addr(args[0]), parse_addr(args[1]), parse_addr(args[2]));
   } else if (name == "flip") {
-    auto args = split_args(rest);
     require(args, 1, "flip");
     w.flip(parse_addr(args[0]));
   } else if (name == "eq") {
-    auto args = split_args(rest);
     require(args, 3, "eq");
     w.eq(parse_addr(args[0]), parse_addr(args[1]), parse_addr(args[2]));
   } else if (name == "div") {
-    auto args = split_args(rest);
     require(args, 3, "div");
     w.div(parse_addr(args[0]), parse_addr(args[1]), parse_addr(args[2]));
+  } else if (name == "mod") {
+    require(args, 3, "mod");
+    w.mod(parse_addr(args[0]), parse_addr(args[1]), parse_addr(args[2]));
   } else {
     throw std::runtime_error("unknown instruction: '" + name + "'");
   }

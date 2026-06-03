@@ -100,6 +100,11 @@ public:
   // is complete
   void div(size_t a, size_t b, size_t dump);
 
+  // Same 4 byte zero requirement at dump as
+  // div. uses the same algorithm as well,
+  // a = a % b
+  void mod(size_t a, size_t b, size_t dump);
+
   // Some divison impl later
 };
 

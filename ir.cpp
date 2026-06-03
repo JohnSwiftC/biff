@@ -1,6 +1,7 @@
 #include "ir.h"
 #include <cstddef>
 #include <ostream>
+#include <stdexcept>
 
 void IRFileWriter::mov(size_t addr, unsigned char val) {
   move_to_address(0, addr);
@@ -276,6 +277,11 @@ void IRFileWriter::eq(size_t a, size_t b, size_t flag) {
 }
 
 void IRFileWriter::div(size_t a, size_t b, size_t dump) {
+
+  if (b == 0) {
+    throw std::runtime_error("attempted to divide by zero");
+  }
+
   add(dump, a);
   add(dump + 1, b);
 
@@ -290,4 +296,26 @@ void IRFileWriter::div(size_t a, size_t b, size_t dump) {
 
   add(a, dump + 3);
   mov(dump + 3, 0);
+}
+
+void IRFileWriter::mod(size_t a, size_t b, size_t dump) {
+
+  if (b == 0) {
+    throw std::runtime_error("attempted to divide by zero (mod)");
+  }
+
+  add(dump, a);
+  add(dump + 1, b);
+
+  move_to_address(0, dump);
+
+  m_out << "[->[->+>>]>[<<+>>[-<+>]>+>>]<<<<<]>[>>>]>[[-<+>]>+>>]<<<<<";
+
+  move_to_address(dump, 0);
+  mov(a, 0);
+  mov(dump + 1, 0);
+  mov(dump + 3, 0);
+
+  add(a, dump + 2);
+  mov(dump + 2, 0);
 }
