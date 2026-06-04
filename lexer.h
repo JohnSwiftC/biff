@@ -6,7 +6,17 @@
 #include <string>
 #include <vector>
 
-enum class TokenType { IDENT, EQUALS, STRING, NUMBER, MUL, DIV, ADD, SUB };
+enum class TokenType {
+  IDENT,
+  EQUALS,
+  STRING,
+  NUMBER,
+  MUL,
+  DIV,
+  ADD,
+  SUB,
+  SEMICOLON
+};
 
 class Token {
 private:

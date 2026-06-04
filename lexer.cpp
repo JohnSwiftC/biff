@@ -31,6 +31,9 @@ std::ostream &operator<<(std::ostream &out, const Token &in) {
   case TokenType::NUMBER:
     out << "NUMBER (" << in.m_val << ')';
     break;
+  case TokenType::SEMICOLON:
+    out << "SEMICOLON (" << in.m_val << ')';
+    break;
   }
 
   return out;
@@ -45,7 +48,9 @@ TokenType Lexer::parse_word(std::string_view word) {
     return TokenType::STRING;
   }
 
-  if (word == "=") {
+  if (word == ";") {
+    return TokenType::SEMICOLON;
+  } else if (word == "=") {
     return TokenType::EQUALS;
   } else if (word == "+") {
     return TokenType::ADD;
@@ -73,7 +78,9 @@ void Lexer::feed(std::string line) {
     }
 
     std::string word;
-    if (line[i] == '"') {
+    if (line[i] == ';') {
+      word += line[i++];
+    } else if (line[i] == '"') {
       word += line[i++];
       while (i < line.length() && line[i] != '"') {
         word += line[i++];
@@ -83,7 +90,8 @@ void Lexer::feed(std::string line) {
       }
     } else {
       while (i < line.length() &&
-             !std::isspace(static_cast<unsigned char>(line[i]))) {
+             !std::isspace(static_cast<unsigned char>(line[i])) &&
+             line[i] != ';') {
         word += line[i++];
       }
     }
