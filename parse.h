@@ -106,13 +106,13 @@ private:
   ExprPtr parse_term();   // * and /
   ExprPtr parse_factor(); // primaries
 
-public:
-  Parser(std::vector<Token> stream);
-
   ExprPtr parse_expression(); // + and -
-
   StmtPtr parse_assign();
   StmtPtr parse_loop();
+  StmtPtr parse_if();
+
+public:
+  Parser(std::vector<Token> stream);
 
   std::vector<StmtPtr> parse_program();
 };

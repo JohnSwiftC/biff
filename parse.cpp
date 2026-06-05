@@ -174,6 +174,22 @@ StmtPtr Parser::parse_loop() {
   return std::make_unique<LoopStmt>(std::move(cond), std::move(body));
 }
 
+StmtPtr Parser::parse_if() {
+
+  expect_type(TokenType::IF, "failed if token");
+  expect_type(TokenType::LPAREN, "if conditions must be in parentheses");
+
+  ExprPtr cond = parse_expression();
+
+  expect_type(TokenType::RPAREN, "if conditions must be in parenthases");
+
+  expect_type(TokenType::LBRACE, "if has no opening code block");
+
+  std::vector<StmtPtr> body = parse_program();
+
+  return std::make_unique<IfStmt>(std::move(cond), std::move(body));
+}
+
 std::vector<StmtPtr> Parser::parse_program() {
   std::vector<StmtPtr> program;
 
@@ -187,6 +203,10 @@ std::vector<StmtPtr> Parser::parse_program() {
 
     case TokenType::LOOP:
       program.push_back(parse_loop());
+      break;
+
+    case TokenType::IF:
+      program.push_back(parse_if());
       break;
     // This only breaks parsing
     // if a block is illegally used
