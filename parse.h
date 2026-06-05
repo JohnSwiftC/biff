@@ -66,6 +66,15 @@ struct AssignStmt : Stmt {
   void display() const override;
 };
 
+struct LoopStmt : Stmt {
+  ExprPtr cond;
+  std::vector<StmtPtr> body;
+
+  LoopStmt(ExprPtr cond, std::vector<StmtPtr> body);
+
+  void display() const override;
+};
+
 class Parser {
 private:
   std::vector<Token> m_stream;
