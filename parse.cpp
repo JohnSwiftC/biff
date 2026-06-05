@@ -112,7 +112,6 @@ ExprPtr Parser::parse_expression() {
     left = std::make_unique<BinaryExpr>(op, std::move(left), std::move(right));
   }
 
-  expect_type(TokenType::SEMICOLON, "missing semicolon");
   return left;
 }
 
@@ -155,7 +154,24 @@ StmtPtr Parser::parse_assign() {
 
   ExprPtr expr = parse_expression();
 
+  expect_type(TokenType::SEMICOLON, "missing semicolon");
+
   return std::make_unique<AssignStmt>(ident.get_val(), std::move(expr));
+}
+
+StmtPtr Parser::parse_loop() {
+  expect_type(TokenType::LOOP, "failed loop token");
+  expect_type(TokenType::LPAREN, "loop conditions must be in parentheses");
+
+  ExprPtr cond = parse_expression();
+
+  expect_type(TokenType::RPAREN, "loop conditions must be in parenthases");
+
+  expect_type(TokenType::LBRACE, "loop has no opening code block");
+
+  std::vector<StmtPtr> body = parse_program();
+
+  return std::make_unique<LoopStmt>(std::move(cond), std::move(body));
 }
 
 std::vector<StmtPtr> Parser::parse_program() {
@@ -168,6 +184,15 @@ std::vector<StmtPtr> Parser::parse_program() {
     case TokenType::IDENT:
       program.push_back(parse_assign());
       break;
+
+    case TokenType::LOOP:
+      program.push_back(parse_loop());
+      break;
+    // This only breaks parsing
+    // if a block is illegally used
+    case TokenType::RBRACE:
+      advance();
+      return program;
     default:
       throw std::runtime_error("Not implemented");
     }

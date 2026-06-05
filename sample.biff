@@ -1,2 +1,9 @@
 x = 32 / 4 + 12 * 3;
 b = x + 3;
+
+loop (x + b) {
+  something = 12;
+  another = 13 + 7 * 9;
+}
+
+finally = 69;
