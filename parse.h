@@ -111,6 +111,8 @@ public:
 
   ExprPtr parse_expression(); // + and -
   StmtPtr parse_assign();
+
+  std::vector<StmtPtr> parse_program();
 };
 
 #endif

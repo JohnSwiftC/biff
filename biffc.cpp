@@ -56,13 +56,12 @@ int main(int argc, char **argv) {
 
   Parser parser{token_stream};
 
-  ExprPtr expr = parser.parse_expression();
+  std::vector<StmtPtr> program = parser.parse_program();
 
-  expr->display();
-
-  StmtPtr stmt = parser.parse_assign();
-
-  stmt->display();
+  for (const StmtPtr &stmt : program) {
+    stmt->display();
+    std::cout << '\n';
+  }
 
   return 0;
 }

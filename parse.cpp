@@ -157,3 +157,21 @@ StmtPtr Parser::parse_assign() {
 
   return std::make_unique<AssignStmt>(ident.get_val(), std::move(expr));
 }
+
+std::vector<StmtPtr> Parser::parse_program() {
+  std::vector<StmtPtr> program;
+
+  while (!at_end()) {
+    const Token &curr = peek();
+
+    switch (curr.get_type()) {
+    case TokenType::IDENT:
+      program.push_back(parse_assign());
+      break;
+    default:
+      throw std::runtime_error("Not implemented");
+    }
+  }
+
+  return program;
+}
