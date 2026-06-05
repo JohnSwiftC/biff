@@ -57,6 +57,9 @@ std::ostream &operator<<(std::ostream &out, const Token &in) {
   return out;
 }
 
+const TokenType &Token::get_type() const { return m_type; }
+const std::string &Token::get_val() const { return m_val; }
+
 bool Lexer::is_numeric(std::string_view word) {
   return (word[0] >= 48 && word[0] <= 57);
 }

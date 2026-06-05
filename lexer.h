@@ -33,6 +33,9 @@ private:
 
 public:
   Token(TokenType type, std::string val) : m_type{type}, m_val{val} {}
+
+  const TokenType &get_type() const;
+  const std::string &get_val() const;
 };
 
 class Lexer {

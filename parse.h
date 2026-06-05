@@ -6,7 +6,7 @@
 #include <vector>
 
 class Token;
-class TokenType;
+enum class TokenType;
 
 struct Expr {
   virtual ~Expr() = default;
@@ -75,12 +75,32 @@ struct LoopStmt : Stmt {
   void display() const override;
 };
 
+struct IfStmt : Stmt {
+  ExprPtr cond;
+  std::vector<StmtPtr> body;
+
+  IfStmt(ExprPtr cond, std::vector<StmtPtr> body);
+
+  void display() const override;
+};
+
 class Parser {
 private:
   std::vector<Token> m_stream;
   size_t m_pointer;
 
-  bool check(const TokenType &type) const;
+  bool check(const Token &token) const;
+
+  const Token &peek() const;
+  // expect also advances, but only
+  // if the token at ptr matches the input token
+  // throws an exception if its bad, used to handle
+  // error paths
+  Token &expect(const Token &token, std::string on_fail);
+  Token &advance();
+
+public:
+  Parser(std::vector<Token> stream);
 };
 
 #endif

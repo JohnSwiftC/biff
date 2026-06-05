@@ -1,6 +1,8 @@
 #include "parse.h"
+#include "lexer.h"
 
 #include <iostream>
+#include <stdexcept>
 
 VarExpr::VarExpr(std::string name) : name{std::move(name)} {}
 void VarExpr::display() const { std::cout << "VarExpr (" << name << ")"; }
@@ -36,3 +38,37 @@ void LoopStmt::display() const {
 
   std::cout << ")";
 }
+
+IfStmt::IfStmt(ExprPtr cond, std::vector<StmtPtr> body)
+    : cond{std::move(cond)}, body{std::move(body)} {}
+void IfStmt::display() const {
+  std::cout << "IfStmt (";
+  cond->display();
+  std::cout << " ";
+
+  for (const StmtPtr &s : body) {
+    s->display();
+  }
+
+  std::cout << ")";
+}
+
+Parser::Parser(std::vector<Token> stream)
+    : m_stream{std::move(stream)}, m_pointer{0} {}
+
+bool Parser::check(const Token &token) const {
+  return (token.get_type() == m_stream[m_pointer].get_type() &&
+          token.get_val() == m_stream[m_pointer].get_val());
+}
+
+const Token &Parser::peek() const { return m_stream[m_pointer]; }
+
+Token &Parser::expect(const Token &token, std::string on_fail) {
+  if (check(token)) {
+    return m_stream[m_pointer++];
+  }
+
+  throw std::runtime_error(on_fail.c_str());
+}
+
+Token &Parser::advance() { return m_stream[m_pointer++]; }
