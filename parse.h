@@ -110,6 +110,7 @@ public:
   Parser(std::vector<Token> stream);
 
   ExprPtr parse_expression(); // + and -
+  StmtPtr parse_assign();
 };
 
 #endif

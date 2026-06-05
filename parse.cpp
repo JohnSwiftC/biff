@@ -2,6 +2,7 @@
 #include "lexer.h"
 
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 
 VarExpr::VarExpr(std::string name) : name{std::move(name)} {}
@@ -111,6 +112,7 @@ ExprPtr Parser::parse_expression() {
     left = std::make_unique<BinaryExpr>(op, std::move(left), std::move(right));
   }
 
+  expect_type(TokenType::SEMICOLON, "missing semicolon");
   return left;
 }
 
@@ -144,4 +146,14 @@ ExprPtr Parser::parse_factor() {
   }
 
   throw std::runtime_error("expected an expression");
+}
+
+StmtPtr Parser::parse_assign() {
+  Token &ident = expect_type(TokenType::IDENT, "Can't assign non ident");
+
+  expect_type(TokenType::EQUALS, "No matching equals sign for assignment");
+
+  ExprPtr expr = parse_expression();
+
+  return std::make_unique<AssignStmt>(ident.get_val(), std::move(expr));
 }

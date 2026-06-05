@@ -60,5 +60,9 @@ int main(int argc, char **argv) {
 
   expr->display();
 
+  StmtPtr stmt = parser.parse_assign();
+
+  stmt->display();
+
   return 0;
 }
