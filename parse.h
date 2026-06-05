@@ -2,6 +2,7 @@
 #define SYNTAX_TREE_H
 
 #include <memory>
+#include <string>
 #include <vector>
 
 class Token;
@@ -21,6 +22,32 @@ struct Stmt {
 
 using ExprPtr = std::unique_ptr<Expr>;
 using StmtPtr = std::unique_ptr<Stmt>;
+
+struct NumberExpr : Expr {
+  std::string val;
+
+  NumberExpr(std::string val);
+
+  void display() const override;
+};
+
+struct StringExpr : Expr {
+  std::string val;
+
+  StringExpr(std::string val);
+
+  void display() const override;
+};
+
+struct BinaryExpr : Expr {
+  char op;
+  ExprPtr left;
+  ExprPtr right;
+
+  BinaryExpr(char op, ExprPtr left, ExprPtr right);
+
+  void display() const override;
+};
 
 class Parser {
 private:
