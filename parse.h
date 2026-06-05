@@ -88,8 +88,11 @@ class Parser {
 private:
   std::vector<Token> m_stream;
   size_t m_pointer;
+  size_t m_size;
 
   bool check(const Token &token) const;
+  bool check_type(const TokenType &type) const;
+  bool at_end() const;
 
   const Token &peek() const;
   // expect also advances, but only
@@ -97,7 +100,12 @@ private:
   // throws an exception if its bad, used to handle
   // error paths
   Token &expect(const Token &token, std::string on_fail);
+  Token &expect_type(const TokenType &type, std::string on_fail);
   Token &advance();
+
+  ExprPtr parse_expression(); // + and -
+  ExprPtr parse_term();       // * and /
+  ExprPtr parse_factor();     // primaries
 
 public:
   Parser(std::vector<Token> stream);
