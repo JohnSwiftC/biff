@@ -23,6 +23,14 @@ struct Stmt {
 using ExprPtr = std::unique_ptr<Expr>;
 using StmtPtr = std::unique_ptr<Stmt>;
 
+struct VarExpr : Expr {
+  std::string name;
+
+  VarExpr(std::string val);
+
+  void display() const override;
+};
+
 struct NumberExpr : Expr {
   std::string val;
 
@@ -45,6 +53,15 @@ struct BinaryExpr : Expr {
   ExprPtr right;
 
   BinaryExpr(char op, ExprPtr left, ExprPtr right);
+
+  void display() const override;
+};
+
+struct AssignStmt : Stmt {
+  std::string name;
+  ExprPtr val;
+
+  AssignStmt(std::string name, ExprPtr val);
 
   void display() const override;
 };
