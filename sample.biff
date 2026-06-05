@@ -1,9 +1,1 @@
-b = 12 + 13;
-
-my_string = "Hello, World!";
-
-loop (b) {
-  if (a ) {
-      c = b;
-    }
-}
+12 + a / b - 4;

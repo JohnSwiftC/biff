@@ -15,7 +15,19 @@ void StringExpr::display() const { std::cout << "StringExpr (" << val << ")"; }
 
 BinaryExpr::BinaryExpr(char op, ExprPtr left, ExprPtr right)
     : op{op}, left{std::move(left)}, right{std::move(right)} {}
-void BinaryExpr::display() const { std::cout << "BinaryExpr (" << op << ")"; }
+void BinaryExpr::display() const {
+  if (left) {
+    std::cout << '(';
+    left->display();
+  }
+
+  std::cout << " " << op << " ";
+
+  if (right) {
+    right->display();
+    std::cout << ')';
+  }
+}
 
 AssignStmt::AssignStmt(std::string name, ExprPtr val)
     : name{std::move(name)}, val{std::move(val)} {}

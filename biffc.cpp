@@ -1,4 +1,5 @@
 #include "lexer.h"
+#include "parse.h"
 
 #include <cstddef>
 #include <fstream>
@@ -53,9 +54,11 @@ int main(int argc, char **argv) {
 
   std::vector<Token> token_stream = lexer.empty();
 
-  for (const Token &token : token_stream) {
-    *out << token << '\n';
-  }
+  Parser parser{token_stream};
+
+  ExprPtr expr = parser.parse_expression();
+
+  expr->display();
 
   return 0;
 }

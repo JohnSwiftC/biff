@@ -103,12 +103,13 @@ private:
   Token &expect_type(const TokenType &type, std::string on_fail);
   Token &advance();
 
-  ExprPtr parse_expression(); // + and -
-  ExprPtr parse_term();       // * and /
-  ExprPtr parse_factor();     // primaries
+  ExprPtr parse_term();   // * and /
+  ExprPtr parse_factor(); // primaries
 
 public:
   Parser(std::vector<Token> stream);
+
+  ExprPtr parse_expression(); // + and -
 };
 
 #endif
