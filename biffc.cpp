@@ -1,7 +1,22 @@
 #include "lexer.h"
 
+#include <cstddef>
 #include <fstream>
 #include <iostream>
+#include <unordered_map>
+
+class Scope {
+private:
+  std::unordered_map<std::string, size_t> m_vars;
+
+public:
+  Scope() : m_vars() {}
+
+  size_t get_var_addr(std::string &var) const { return m_vars.at(var); }
+  void set_var_addr(std::string var, size_t addr) { m_vars[var] = addr; }
+};
+
+class Compiler {};
 
 int main(int argc, char **argv) {
 
