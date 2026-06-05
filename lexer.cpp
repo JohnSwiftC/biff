@@ -34,6 +34,24 @@ std::ostream &operator<<(std::ostream &out, const Token &in) {
   case TokenType::SEMICOLON:
     out << "SEMICOLON (" << in.m_val << ')';
     break;
+  case TokenType::LOOP:
+    out << "LOOP (" << in.m_val << ')';
+    break;
+  case TokenType::IF:
+    out << "IF (" << in.m_val << ')';
+    break;
+  case TokenType::LBRACE:
+    out << "LBRACE (" << in.m_val << ')';
+    break;
+  case TokenType::RBRACE:
+    out << "RBRACE (" << in.m_val << ')';
+    break;
+  case TokenType::LPAREN:
+    out << "LPAREN (" << in.m_val << ')';
+    break;
+  case TokenType::RPAREN:
+    out << "RPAREN (" << in.m_val << ')';
+    break;
   }
 
   return out;
@@ -43,6 +61,10 @@ bool Lexer::is_numeric(std::string_view word) {
   return (word[0] >= 48 && word[0] <= 57);
 }
 
+bool Lexer::is_punct(char c) {
+  return c == ';' || c == '{' || c == '}' || c == '(' || c == ')';
+}
+
 TokenType Lexer::parse_word(std::string_view word) {
   if (word[0] == '"') {
     return TokenType::STRING;
@@ -50,6 +72,14 @@ TokenType Lexer::parse_word(std::string_view word) {
 
   if (word == ";") {
     return TokenType::SEMICOLON;
+  } else if (word == "{") {
+    return TokenType::LBRACE;
+  } else if (word == "}") {
+    return TokenType::RBRACE;
+  } else if (word == "(") {
+    return TokenType::LPAREN;
+  } else if (word == ")") {
+    return TokenType::RPAREN;
   } else if (word == "=") {
     return TokenType::EQUALS;
   } else if (word == "+") {
@@ -60,6 +90,10 @@ TokenType Lexer::parse_word(std::string_view word) {
     return TokenType::MUL;
   } else if (word == "/") {
     return TokenType::DIV;
+  } else if (word == "loop") {
+    return TokenType::LOOP;
+  } else if (word == "if") {
+    return TokenType::IF;
   }
 
   if (is_numeric(word)) {
@@ -78,7 +112,7 @@ void Lexer::feed(std::string line) {
     }
 
     std::string word;
-    if (line[i] == ';') {
+    if (is_punct(line[i])) {
       word += line[i++];
     } else if (line[i] == '"') {
       word += line[i++];
@@ -91,7 +125,7 @@ void Lexer::feed(std::string line) {
     } else {
       while (i < line.length() &&
              !std::isspace(static_cast<unsigned char>(line[i])) &&
-             line[i] != ';') {
+             !is_punct(line[i])) {
         word += line[i++];
       }
     }

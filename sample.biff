@@ -1,3 +1,9 @@
-b = 12 + 13
+b = 12 + 13;
 
-my_string = "Hello, World!"
+my_string = "Hello, World!";
+
+loop (b) {
+  if (a ) {
+      c = b;
+    }
+}

@@ -15,7 +15,13 @@ enum class TokenType {
   DIV,
   ADD,
   SUB,
-  SEMICOLON
+  SEMICOLON,
+  LOOP,
+  IF,
+  LBRACE,
+  RBRACE,
+  LPAREN,
+  RPAREN,
 };
 
 class Token {
@@ -34,6 +40,7 @@ private:
   std::vector<Token> m_token_stream;
 
   bool is_numeric(std::string_view word);
+  static bool is_punct(char c);
   TokenType parse_word(std::string_view word);
 
 public:
