@@ -11,10 +11,18 @@
 class Token;
 enum class TokenType;
 
+enum class ExprType {
+  VAR,
+  NUMBER,
+  STRING,
+  BINARY,
+};
+
 struct Expr {
   virtual ~Expr() = default;
 
   virtual void display() const = 0;
+  virtual ExprType get_type() const = 0;
 };
 
 struct Stmt {
@@ -33,6 +41,7 @@ struct VarExpr : Expr {
   VarExpr(std::string val);
 
   void display() const override;
+  ExprType get_type() const override;
 };
 
 struct NumberExpr : Expr {
@@ -41,6 +50,7 @@ struct NumberExpr : Expr {
   NumberExpr(std::string val);
 
   void display() const override;
+  ExprType get_type() const override;
 };
 
 struct StringExpr : Expr {
@@ -49,6 +59,7 @@ struct StringExpr : Expr {
   StringExpr(std::string val);
 
   void display() const override;
+  ExprType get_type() const override;
 };
 
 struct BinaryExpr : Expr {
@@ -59,6 +70,7 @@ struct BinaryExpr : Expr {
   BinaryExpr(std::string op, ExprPtr left, ExprPtr right);
 
   void display() const override;
+  ExprType get_type() const override;
 };
 
 struct AssignStmt : Stmt {
