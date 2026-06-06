@@ -22,6 +22,24 @@ std::ostream &operator<<(std::ostream &out, const Token &in) {
   case TokenType::EQUALS:
     out << "EQUALS (" << in.m_val << ')';
     break;
+  case TokenType::EQ:
+    out << "EQ (" << in.m_val << ')';
+    break;
+  case TokenType::NEQ:
+    out << "NEQ (" << in.m_val << ')';
+    break;
+  case TokenType::LT:
+    out << "LT (" << in.m_val << ')';
+    break;
+  case TokenType::GT:
+    out << "GT (" << in.m_val << ')';
+    break;
+  case TokenType::LEQ:
+    out << "LEQ (" << in.m_val << ')';
+    break;
+  case TokenType::GEQ:
+    out << "GEQ (" << in.m_val << ')';
+    break;
   case TokenType::IDENT:
     out << "IDENT (" << in.m_val << ')';
     break;
@@ -85,6 +103,18 @@ TokenType Lexer::parse_word(std::string_view word) {
     return TokenType::RPAREN;
   } else if (word == "=") {
     return TokenType::EQUALS;
+  } else if (word == "==") {
+    return TokenType::EQ;
+  } else if (word == "!=") {
+    return TokenType::NEQ;
+  } else if (word == "<") {
+    return TokenType::LT;
+  } else if (word == ">") {
+    return TokenType::GT;
+  } else if (word == "<=") {
+    return TokenType::LEQ;
+  } else if (word == ">=") {
+    return TokenType::GEQ;
   } else if (word == "+") {
     return TokenType::ADD;
   } else if (word == "-") {

@@ -8,6 +8,6 @@ loop (x + b) {
 
 finally = 69;
 
-if (finally) {
+if (finally > 5) {
   yay = "yayayayaya!!!";
 }

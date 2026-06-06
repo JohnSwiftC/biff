@@ -14,8 +14,8 @@ void NumberExpr::display() const { std::cout << "NumberExpr (" << val << ")"; }
 StringExpr::StringExpr(std::string val) : val{val} {}
 void StringExpr::display() const { std::cout << "StringExpr (" << val << ")"; }
 
-BinaryExpr::BinaryExpr(char op, ExprPtr left, ExprPtr right)
-    : op{op}, left{std::move(left)}, right{std::move(right)} {}
+BinaryExpr::BinaryExpr(std::string op, ExprPtr left, ExprPtr right)
+    : op{std::move(op)}, left{std::move(left)}, right{std::move(right)} {}
 void BinaryExpr::display() const {
   if (left) {
     std::cout << '(';
@@ -104,12 +104,28 @@ Token &Parser::expect_type(const TokenType &type, std::string on_fail) {
 Token &Parser::advance() { return m_stream[m_pointer++]; }
 
 ExprPtr Parser::parse_expression() {
+  ExprPtr left = parse_additive();
+
+  while (check_type(TokenType::EQ) || check_type(TokenType::NEQ) ||
+         check_type(TokenType::LT) || check_type(TokenType::GT) ||
+         check_type(TokenType::LEQ) || check_type(TokenType::GEQ)) {
+    std::string op = advance().get_val();
+    ExprPtr right = parse_additive();
+    left = std::make_unique<BinaryExpr>(std::move(op), std::move(left),
+                                        std::move(right));
+  }
+
+  return left;
+}
+
+ExprPtr Parser::parse_additive() {
   ExprPtr left = parse_term();
 
   while (check_type(TokenType::ADD) || check_type(TokenType::SUB)) {
-    char op = advance().get_val()[0];
+    std::string op = advance().get_val();
     ExprPtr right = parse_term();
-    left = std::make_unique<BinaryExpr>(op, std::move(left), std::move(right));
+    left = std::make_unique<BinaryExpr>(std::move(op), std::move(left),
+                                        std::move(right));
   }
 
   return left;
@@ -119,9 +135,10 @@ ExprPtr Parser::parse_term() {
   ExprPtr left = parse_factor();
 
   while (check_type(TokenType::MUL) || check_type(TokenType::DIV)) {
-    char op = advance().get_val()[0];
+    std::string op = advance().get_val();
     ExprPtr right = parse_factor();
-    left = std::make_unique<BinaryExpr>(op, std::move(left), std::move(right));
+    left = std::make_unique<BinaryExpr>(std::move(op), std::move(left),
+                                        std::move(right));
   }
 
   return left;

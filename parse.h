@@ -48,11 +48,11 @@ struct StringExpr : Expr {
 };
 
 struct BinaryExpr : Expr {
-  char op;
+  std::string op;
   ExprPtr left;
   ExprPtr right;
 
-  BinaryExpr(char op, ExprPtr left, ExprPtr right);
+  BinaryExpr(std::string op, ExprPtr left, ExprPtr right);
 
   void display() const override;
 };
@@ -103,10 +103,11 @@ private:
   Token &expect_type(const TokenType &type, std::string on_fail);
   Token &advance();
 
-  ExprPtr parse_term();   // * and /
-  ExprPtr parse_factor(); // primaries
+  ExprPtr parse_term();
+  ExprPtr parse_factor();
 
-  ExprPtr parse_expression(); // + and -
+  ExprPtr parse_additive();
+  ExprPtr parse_expression();
   StmtPtr parse_assign();
   StmtPtr parse_loop();
   StmtPtr parse_if();
