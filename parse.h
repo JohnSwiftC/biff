@@ -2,8 +2,11 @@
 #define SYNTAX_TREE_H
 
 #include <memory>
+#include <ostream>
 #include <string>
 #include <vector>
+
+#include "biffc.h"
 
 class Token;
 enum class TokenType;
@@ -18,6 +21,7 @@ struct Stmt {
   virtual ~Stmt() = default;
 
   virtual void display() const = 0;
+  virtual void generate(std::ostream *out, Compiler *compiler) = 0;
 };
 
 using ExprPtr = std::unique_ptr<Expr>;
@@ -64,6 +68,7 @@ struct AssignStmt : Stmt {
   AssignStmt(std::string name, ExprPtr val);
 
   void display() const override;
+  void generate(std::ostream *out, Compiler *compiler) override;
 };
 
 struct LoopStmt : Stmt {
@@ -73,6 +78,7 @@ struct LoopStmt : Stmt {
   LoopStmt(ExprPtr cond, std::vector<StmtPtr> body);
 
   void display() const override;
+  void generate(std::ostream *out, Compiler *compiler) override;
 };
 
 struct IfStmt : Stmt {
@@ -82,6 +88,7 @@ struct IfStmt : Stmt {
   IfStmt(ExprPtr cond, std::vector<StmtPtr> body);
 
   void display() const override;
+  void generate(std::ostream *out, Compiler *compiler) override;
 };
 
 class Parser {

@@ -1,3 +1,4 @@
+#include "biffc.h"
 #include "lexer.h"
 #include "parse.h"
 
@@ -6,18 +7,19 @@
 #include <iostream>
 #include <unordered_map>
 
-class Scope {
-private:
-  std::unordered_map<std::string, size_t> m_vars;
+Scope::Scope() : m_vars{} {}
 
-public:
-  Scope() : m_vars() {}
+size_t Scope::get_var_addr(std::string &var) const { return m_vars.at(var); }
+void Scope::set_var_addr(std::string var, size_t addr) { m_vars[var] = addr; }
 
-  size_t get_var_addr(std::string &var) const { return m_vars.at(var); }
-  void set_var_addr(std::string var, size_t addr) { m_vars[var] = addr; }
-};
+size_t Scope::get_next_free() const { return m_next_free; }
+void Scope::set_next_free(size_t addr) { m_next_free = addr; }
+void Scope::bump_next_free(size_t size) { m_next_free += size; }
 
-class Compiler {};
+Compiler::Compiler() : m_scope_stack{Scope()} {}
+Scope &Compiler::get_scope() { return m_scope_stack.back(); }
+void Compiler::add_scope() { m_scope_stack.emplace_back(); }
+void Compiler::remove_scope() { m_scope_stack.pop_back(); }
 
 int main(int argc, char **argv) {
 
