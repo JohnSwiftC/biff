@@ -44,7 +44,40 @@ void AssignStmt::display() const {
   std::cout << ")";
 }
 
-void AssignStmt::generate(std::ostream *out, Compiler *compiler) {}
+void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
+  ExprType type = val->get_type();
+  Scope &scope = compiler->get_scope();
+  if (type == ExprType::STRING) {
+    if (scope.contains_var(name)) {
+      throw std::runtime_error("attempted to redefine string const: " + name);
+    }
+
+    StringExpr *string_expr = static_cast<StringExpr *>(val.get());
+    size_t string_size = string_expr->val.length();
+    size_t dest = scope.get_next_free();
+    *out << "INSERT_STRING: " << dest << ", " << string_expr->val << '\n';
+
+    scope.set_var_addr(name, dest);
+    scope.bump_next_free(string_size);
+    return;
+  } else if (type == ExprType::NUMBER) {
+    size_t dest{};
+    if (scope.contains_var(name)) {
+      dest = scope.get_var_addr(name);
+    } else {
+      dest = scope.get_next_free();
+      scope.set_var_addr(name, dest);
+      scope.bump_next_free(1);
+    }
+
+    NumberExpr *number_expr = static_cast<NumberExpr *>(val.get());
+
+    *out << "MOV: " << dest << ", " << number_expr->val << '\n';
+    return;
+  }
+
+  throw std::runtime_error("assignment case not implemented yet");
+}
 
 LoopStmt::LoopStmt(ExprPtr cond, std::vector<StmtPtr> body)
     : cond{std::move(cond)}, body{std::move(body)} {}

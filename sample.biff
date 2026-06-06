@@ -1,14 +1,7 @@
-x = 32 / 4 + 12 * 3;
-b = x + 3;
+x = 4;
 
-loop (x + b) {
-  something = 12;
-  another = 13 + 7 * 9;
-}
+my_string = "Please fucking work";
+another = "Another";
 
-finally = 69;
-alone = "Hello, World!";
-
-if (finally > 5) {
-  yay = "yayayayaya!!!";
-}
+x = 7;
+another = "Fuck";
