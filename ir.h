@@ -115,13 +115,13 @@ public:
   // starting at dump. these will be zeroed once the operation
   // is complete
   void div(size_t a, size_t b, size_t dump);
-  void div_const(size_t a, unsigned char val, size_t dump);
+  void div_const(size_t dest, unsigned char val, size_t dump);
 
   // Same 4 byte zero requirement at dump as
   // div. uses the same algorithm as well,
   // a = a % b
   void mod(size_t a, size_t b, size_t dump);
-  void mod_const(size_t a, unsigned char val, size_t dump);
+  void mod_const(size_t dest, unsigned char val, size_t dump);
 
   // Display a number as a string
   // this is expensive af

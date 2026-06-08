@@ -381,8 +381,24 @@ void IRFileWriter::div(size_t a, size_t b, size_t dump) {
   mov(dump + 3, 0);
 }
 
-void IRFileWriter::mod(size_t a, size_t b, size_t dump) {
+void IRFileWriter::div_const(size_t dest, unsigned char val, size_t dump) {
+  add(dump, dest);
+  add_const(dump + 1, val);
 
+  shift(0, dump);
+
+  m_out << "[->[->+>>]>[<<+>>[-<+>]>+>>]<<<<<]>[>>>]>[[-<+>]>+>>]<<<<<";
+
+  shift(dump, 0);
+  mov(dest, 0);
+  mov(dump + 1, 0);
+  mov(dump + 2, 0);
+
+  add(dest, dump + 3);
+  mov(dump + 3, 0);
+}
+
+void IRFileWriter::mod(size_t a, size_t b, size_t dump) {
   add(dump, a);
   add(dump + 1, b);
 
@@ -396,6 +412,23 @@ void IRFileWriter::mod(size_t a, size_t b, size_t dump) {
   mov(dump + 3, 0);
 
   add(a, dump + 2);
+  mov(dump + 2, 0);
+}
+
+void IRFileWriter::mod_const(size_t dest, unsigned char val, size_t dump) {
+  add(dump, dest);
+  add_const(dump + 1, val);
+
+  shift(0, dump);
+
+  m_out << "[->[->+>>]>[<<+>>[-<+>]>+>>]<<<<<]>[>>>]>[[-<+>]>+>>]<<<<<";
+
+  shift(dump, 0);
+  mov(dest, 0);
+  mov(dump + 1, 0);
+  mov(dump + 3, 0);
+
+  add(dest, dump + 2);
   mov(dump + 2, 0);
 }
 

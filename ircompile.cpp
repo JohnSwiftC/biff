@@ -198,9 +198,15 @@ void compile_line(IRFileWriter &w, const std::string &raw) {
   } else if (name == "div") {
     require(args, 3, "div");
     w.div(parse_addr(args[0]), parse_addr(args[1]), parse_addr(args[2]));
+  } else if (name == "div_const") {
+    require(args, 3, "div_const");
+    w.div_const(parse_addr(args[0]), parse_byte(args[1]), parse_addr(args[2]));
   } else if (name == "mod") {
     require(args, 3, "mod");
     w.mod(parse_addr(args[0]), parse_addr(args[1]), parse_addr(args[2]));
+  } else if (name == "mod_const") {
+    require(args, 3, "mod_const");
+    w.mod_const(parse_addr(args[0]), parse_byte(args[1]), parse_addr(args[2]));
   } else if (name == "itoa") {
     require(args, 2, "itoa");
     w.itoa(parse_addr(args[0]), parse_addr(args[1]));
