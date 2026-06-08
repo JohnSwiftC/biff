@@ -179,7 +179,8 @@ ExprPtr Parser::parse_additive() {
 ExprPtr Parser::parse_term() {
   ExprPtr left = parse_factor();
 
-  while (check_type(TokenType::MUL) || check_type(TokenType::DIV)) {
+  while (check_type(TokenType::MUL) || check_type(TokenType::DIV) ||
+         check_type(TokenType::MOD)) {
     std::string op = advance().get_val();
     ExprPtr right = parse_factor();
     left = std::make_unique<BinaryExpr>(std::move(op), std::move(left),

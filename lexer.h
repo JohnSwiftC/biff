@@ -15,6 +15,7 @@ enum class TokenType {
   DIV,
   ADD,
   SUB,
+  MOD,
   EQ,
   NEQ,
   LT,

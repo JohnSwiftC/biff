@@ -123,6 +123,8 @@ TokenType Lexer::parse_word(std::string_view word) {
     return TokenType::MUL;
   } else if (word == "/") {
     return TokenType::DIV;
+  } else if (word == "%") {
+    return TokenType::MOD;
   } else if (word == "loop") {
     return TokenType::LOOP;
   } else if (word == "if") {
