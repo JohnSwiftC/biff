@@ -79,7 +79,10 @@ public:
   // Mul must know where it can use two addresses to act as counters.
   // these counter are reset to zero after the end of the loop,
   // so this memory is completely released following the end of the operation
-  void mul(size_t dest, size_t src, size_t counter_one, size_t counter_two);
+  //
+  // Dump must have two consecutive zero bytes
+  void mul(size_t dest, size_t src, size_t dump);
+  void mul_const(size_t dest, unsigned char val, size_t dump);
 
   // Flips the value in a cell. Any non-zero value will become zero,
   // any zero cell will become one
@@ -112,11 +115,13 @@ public:
   // starting at dump. these will be zeroed once the operation
   // is complete
   void div(size_t a, size_t b, size_t dump);
+  void div_const(size_t a, unsigned char val, size_t dump);
 
   // Same 4 byte zero requirement at dump as
   // div. uses the same algorithm as well,
   // a = a % b
   void mod(size_t a, size_t b, size_t dump);
+  void mod_const(size_t a, unsigned char val, size_t dump);
 
   // Display a number as a string
   // this is expensive af

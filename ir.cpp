@@ -186,8 +186,10 @@ void IRFileWriter::endif(size_t flag) {
   shift(flag, 0);
 }
 
-void IRFileWriter::mul(size_t dest, size_t src, size_t counter_one,
-                       size_t counter_two) {
+void IRFileWriter::mul(size_t dest, size_t src, size_t dump) {
+
+  size_t counter_one = dump;
+  size_t counter_two = dump + 1;
 
   // Sets moves the value of dest to counter_one,
   // and sets dest to 0
