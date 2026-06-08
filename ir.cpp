@@ -209,6 +209,26 @@ void IRFileWriter::mul(size_t dest, size_t src, size_t dump) {
   endloop(counter_one);
 }
 
+void IRFileWriter::mul_const(size_t dest, unsigned char val, size_t dump) {
+  size_t counter_one = dump;
+  size_t counter_two = dump + 1;
+
+  mov(counter_one, 0);
+  add(counter_one, dest);
+  mov(dest, 0);
+
+  mov(counter_two, 0);
+
+  loop(counter_one);
+  add_const(counter_two, val);
+  loop(counter_two);
+
+  add_const(dest, 1);
+
+  endloop(counter_two);
+  endloop(counter_one);
+}
+
 // div hopefully
 
 // Set addr 0 to one,

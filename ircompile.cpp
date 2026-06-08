@@ -177,6 +177,9 @@ void compile_line(IRFileWriter &w, const std::string &raw) {
   } else if (name == "mul") {
     require(args, 3, "mul");
     w.mul(parse_addr(args[0]), parse_addr(args[1]), parse_addr(args[2]));
+  } else if (name == "mul_const") {
+    require(args, 3, "mul_const");
+    w.mul_const(parse_addr(args[0]), parse_byte(args[1]), parse_addr(args[2]));
   } else if (name == "neq") {
     require(args, 3, "neq");
     w.neq(parse_addr(args[0]), parse_addr(args[1]), parse_addr(args[2]));
