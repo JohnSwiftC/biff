@@ -5,6 +5,7 @@
 #include <iostream>
 #include <memory>
 #include <ostream>
+#include <sstream>
 #include <stdexcept>
 
 VarExpr::VarExpr(std::string name) : name{std::move(name)} {}
@@ -42,6 +43,25 @@ void AssignStmt::display() const {
   std::cout << "AssignStmt (" << name << " ";
   val->display();
   std::cout << ")";
+}
+
+AssignStmt::EvalResult AssignStmt::eval(std::ostream *out, Compiler *compiler,
+                                        Expr *expr) {
+  if (expr->get_type() == ExprType::STRING) {
+    throw std::runtime_error("illegal string literal in compound expression");
+  }
+
+  if (expr->get_type() == ExprType::NUMBER) {
+    NumberExpr *expr = static_cast<NumberExpr *>(expr);
+    std::stringstream stream(expr->val);
+    size_t val;
+    stream >> val;
+    return AssignStmt::EvalResult{EvalType::CONST, val};
+  }
+
+  if (expr->get_type() == ExprType::VAR) {
+    VarExpr *expr = static_cast<VarExpr *>(expr);
+  }
 }
 
 void AssignStmt::generate(std::ostream *out, Compiler *compiler) {

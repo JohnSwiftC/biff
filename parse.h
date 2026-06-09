@@ -79,6 +79,18 @@ struct AssignStmt : Stmt {
 
   AssignStmt(std::string name, ExprPtr val);
 
+  // These are used when evaluating the
+  // expression tree recursively
+  enum class EvalType {
+    ADDRESS,
+    CONST,
+  };
+
+  struct EvalResult {
+    EvalType type;
+    size_t val;
+  };
+  EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr);
   void display() const override;
   void generate(std::ostream *out, Compiler *compiler) override;
 };

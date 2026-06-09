@@ -68,9 +68,14 @@ int main(int argc, char **argv) {
 
   std::vector<StmtPtr> program = parser.parse_program();
 
-  Compiler compiler{std::move(program)};
+  for (const StmtPtr &ptr : program) {
+    ptr->display();
+    std::cout << '\n';
+  }
 
-  compiler.generate_program(out);
+  // Compiler compiler{std::move(program)};
+
+  // compiler.generate_program(out);
 
   return 0;
 }
