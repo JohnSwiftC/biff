@@ -19,6 +19,9 @@ std::ostream &operator<<(std::ostream &out, const Token &in) {
   case TokenType::DIV:
     out << "DIV (" << in.m_val << ')';
     break;
+  case TokenType::MOD:
+    out << "MOD (" << in.m_val << ')';
+    break;
   case TokenType::EQUALS:
     out << "EQUALS (" << in.m_val << ')';
     break;
