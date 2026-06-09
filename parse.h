@@ -73,24 +73,34 @@ struct BinaryExpr : Expr {
   ExprType get_type() const override;
 };
 
+// These are used when evaluating the
+// expression tree recursively
+enum class EvalType {
+  // The address of a named variable's cell. Read-only:
+  // it must never be operated on in place.
+  ADDRESS,
+  CONST,
+  // A scratch cell owned by the evaluator, safe to
+  // accumulate into in place.
+  TEMP,
+};
+
+struct EvalResult {
+  EvalType type;
+  size_t val;
+};
+
+// Recursively evaluates an expression tree, emitting any code
+// needed to compute it. Temps it allocates are reclaimed by the
+// caller with Scope::set_next_free once the result is consumed
+EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr);
+
 struct AssignStmt : Stmt {
   std::string name;
   ExprPtr val;
 
   AssignStmt(std::string name, ExprPtr val);
 
-  // These are used when evaluating the
-  // expression tree recursively
-  enum class EvalType {
-    ADDRESS,
-    CONST,
-  };
-
-  struct EvalResult {
-    EvalType type;
-    size_t val;
-  };
-  EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr);
   void display() const override;
   void generate(std::ostream *out, Compiler *compiler) override;
 };

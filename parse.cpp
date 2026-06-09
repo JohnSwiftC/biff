@@ -45,8 +45,7 @@ void AssignStmt::display() const {
   std::cout << ")";
 }
 
-AssignStmt::EvalResult AssignStmt::eval(std::ostream *out, Compiler *compiler,
-                                        Expr *expr) {
+EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
   if (expr->get_type() == ExprType::STRING) {
     throw std::runtime_error("illegal string literal in compound expression");
   }
@@ -56,7 +55,7 @@ AssignStmt::EvalResult AssignStmt::eval(std::ostream *out, Compiler *compiler,
     std::stringstream stream(num_expr->val);
     size_t val;
     stream >> val;
-    return AssignStmt::EvalResult{EvalType::CONST, val};
+    return EvalResult{EvalType::CONST, val};
   }
 
   if (expr->get_type() == ExprType::VAR) {
@@ -70,7 +69,7 @@ AssignStmt::EvalResult AssignStmt::eval(std::ostream *out, Compiler *compiler,
                                " is not defined in scope");
     }
 
-    return AssignStmt::EvalResult{EvalType::ADDRESS, addr};
+    return EvalResult{EvalType::ADDRESS, addr};
   }
 
   if (expr->get_type() != ExprType::BINARY) {
@@ -78,6 +77,7 @@ AssignStmt::EvalResult AssignStmt::eval(std::ostream *out, Compiler *compiler,
   }
 
   BinaryExpr *bin_expr = static_cast<BinaryExpr *>(expr);
+  Scope &scope = compiler->get_scope();
 
   EvalResult left = eval(out, compiler, bin_expr->left.get());
   EvalResult right = eval(out, compiler, bin_expr->right.get());
@@ -106,7 +106,69 @@ AssignStmt::EvalResult AssignStmt::eval(std::ostream *out, Compiler *compiler,
     throw std::runtime_error("unaccounted operator in const eval");
   }
 
-  throw std::runtime_error("unimplemented");
+  // At least one side lives on the tape. Get the left operand into
+  // a temp cell we own, then fold the right operand into it in place.
+  // ADD/SUB preserve src, and MUL/DIV/MOD zero their dumps, so
+  // variables and cells above next_free stay intact.
+  size_t acc{};
+  if (left.type == EvalType::TEMP) {
+    acc = left.val;
+  } else {
+    acc = scope.get_next_free();
+    scope.bump_next_free(1);
+
+    if (left.type == EvalType::CONST) {
+      *out << "MOV: " << acc << ", " << left.val << '\n';
+    } else {
+      *out << "MOV: " << acc << ", 0\n";
+      *out << "ADD: " << acc << ", " << left.val << '\n';
+    }
+  }
+
+  // Cells at next_free and above are zero, so they can
+  // serve as the dump scratch the ops require
+  size_t dump = scope.get_next_free();
+
+  if (right.type == EvalType::CONST) {
+    if (bin_expr->op == "+") {
+      *out << "ADD_CONST: " << acc << ", " << right.val << '\n';
+    } else if (bin_expr->op == "-") {
+      *out << "SUB_CONST: " << acc << ", " << right.val << '\n';
+    } else if (bin_expr->op == "*") {
+      *out << "MUL_CONST: " << acc << ", " << right.val << ", " << dump << '\n';
+    } else if (bin_expr->op == "/") {
+      *out << "DIV_CONST: " << acc << ", " << right.val << ", " << dump << '\n';
+    } else if (bin_expr->op == "%") {
+      *out << "MOD_CONST: " << acc << ", " << right.val << ", " << dump << '\n';
+    } else {
+      throw std::runtime_error("unaccounted operator in eval");
+    }
+  } else {
+    if (bin_expr->op == "+") {
+      *out << "ADD: " << acc << ", " << right.val << '\n';
+    } else if (bin_expr->op == "-") {
+      *out << "SUB: " << acc << ", " << right.val << '\n';
+    } else if (bin_expr->op == "*") {
+      *out << "MUL: " << acc << ", " << right.val << ", " << dump << '\n';
+    } else if (bin_expr->op == "/") {
+      *out << "DIV: " << acc << ", " << right.val << ", " << dump << '\n';
+    } else if (bin_expr->op == "%") {
+      *out << "MOD: " << acc << ", " << right.val << ", " << dump << '\n';
+    } else {
+      throw std::runtime_error("unaccounted operator in eval");
+    }
+  }
+
+  if (right.type == EvalType::TEMP) {
+    // Release the right-hand temp. It must be zeroed so it can
+    // later be reused as dump scratch
+    *out << "MOV: " << right.val << ", 0\n";
+    if (right.val + 1 == scope.get_next_free()) {
+      scope.set_next_free(right.val);
+    }
+  }
+
+  return EvalResult{EvalType::TEMP, acc};
 }
 
 void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
@@ -141,6 +203,7 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
     return;
   }
 
+  size_t snapshot = scope.get_next_free();
   EvalResult result = eval(out, compiler, val.get());
 
   switch (result.type) {
@@ -159,8 +222,46 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
   }
 
   case EvalType::ADDRESS: {
-    throw std::runtime_error(
-        "eval type ADDRESS not yet handled at the top level");
+    size_t dest{};
+    if (scope.contains_var(name)) {
+      dest = scope.get_var_addr(name);
+    } else {
+      dest = scope.get_next_free();
+      scope.set_var_addr(name, dest);
+      scope.bump_next_free(1);
+    }
+
+    if (dest == result.val) {
+      // x = x;
+      break;
+    }
+
+    *out << "MOV: " << dest << ", 0\n";
+    *out << "ADD: " << dest << ", " << result.val << '\n';
+    break;
+  }
+
+  case EvalType::TEMP: {
+    if (!scope.contains_var(name)) {
+      if (result.val == snapshot) {
+        scope.set_var_addr(name, result.val);
+        scope.set_next_free(result.val + 1);
+        break;
+      }
+
+      *out << "ADD: " << snapshot << ", " << result.val << '\n';
+      *out << "MOV: " << result.val << ", 0\n";
+      scope.set_var_addr(name, snapshot);
+      scope.set_next_free(snapshot + 1);
+      break;
+    }
+
+    size_t dest = scope.get_var_addr(name);
+    *out << "MOV: " << dest << ", 0\n";
+    *out << "ADD: " << dest << ", " << result.val << '\n';
+    *out << "MOV: " << result.val << ", 0\n";
+    scope.set_next_free(snapshot);
+    break;
   }
   }
 }
