@@ -52,16 +52,61 @@ AssignStmt::EvalResult AssignStmt::eval(std::ostream *out, Compiler *compiler,
   }
 
   if (expr->get_type() == ExprType::NUMBER) {
-    NumberExpr *expr = static_cast<NumberExpr *>(expr);
-    std::stringstream stream(expr->val);
+    NumberExpr *num_expr = static_cast<NumberExpr *>(expr);
+    std::stringstream stream(num_expr->val);
     size_t val;
     stream >> val;
     return AssignStmt::EvalResult{EvalType::CONST, val};
   }
 
   if (expr->get_type() == ExprType::VAR) {
-    VarExpr *expr = static_cast<VarExpr *>(expr);
+    VarExpr *var_expr = static_cast<VarExpr *>(expr);
+    size_t addr{};
+
+    if (compiler->get_scope().contains_var(var_expr->name)) {
+      addr = compiler->get_scope().get_var_addr(var_expr->name);
+    } else {
+      throw std::runtime_error("var " + var_expr->name +
+                               " is not defined in scope");
+    }
+
+    return AssignStmt::EvalResult{EvalType::ADDRESS, addr};
   }
+
+  if (expr->get_type() != ExprType::BINARY) {
+    throw std::runtime_error("illegal expression tree configuration");
+  }
+
+  BinaryExpr *bin_expr = static_cast<BinaryExpr *>(expr);
+
+  EvalResult left = eval(out, compiler, bin_expr->left.get());
+  EvalResult right = eval(out, compiler, bin_expr->right.get());
+
+  if (left.type == EvalType::CONST && right.type == EvalType::CONST) {
+    if (bin_expr->op == "+") {
+      return EvalResult{EvalType::CONST, left.val + right.val};
+    }
+
+    if (bin_expr->op == "-") {
+      return EvalResult{EvalType::CONST, left.val - right.val};
+    }
+
+    if (bin_expr->op == "*") {
+      return EvalResult{EvalType::CONST, left.val * right.val};
+    }
+
+    if (bin_expr->op == "/") {
+      return EvalResult{EvalType::CONST, left.val / right.val};
+    }
+
+    if (bin_expr->op == "%") {
+      return EvalResult{EvalType::CONST, left.val % right.val};
+    }
+
+    throw std::runtime_error("unaccounted operator in const eval");
+  }
+
+  throw std::runtime_error("unimplemented");
 }
 
 void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
@@ -96,7 +141,28 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
     return;
   }
 
-  throw std::runtime_error("assignment case not implemented yet");
+  EvalResult result = eval(out, compiler, val.get());
+
+  switch (result.type) {
+  case EvalType::CONST: {
+    size_t dest{};
+    if (scope.contains_var(name)) {
+      dest = scope.get_var_addr(name);
+    } else {
+      dest = scope.get_next_free();
+      scope.set_var_addr(name, dest);
+      scope.bump_next_free(1);
+    }
+
+    *out << "MOV: " << dest << ", " << result.val << '\n';
+    break;
+  }
+
+  case EvalType::ADDRESS: {
+    throw std::runtime_error(
+        "eval type ADDRESS not yet handled at the top level");
+  }
+  }
 }
 
 LoopStmt::LoopStmt(ExprPtr cond, std::vector<StmtPtr> body)

@@ -4,6 +4,5 @@ my_string = "Please fucking work";
 another = "Another";
 
 x = 7;
-another = "Fuck";
 
-expression = 10 % 20;
+expression = (2 + 3) * 3;
