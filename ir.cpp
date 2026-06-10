@@ -291,10 +291,35 @@ void IRFileWriter::neq(size_t a, size_t b, size_t flag) {
   endif(flag + 1);
 }
 
+void IRFileWriter::neq_const(size_t a, unsigned char val, size_t flag) {
+  mov(flag, 0);
+  add_const(flag, val);
+
+  sub(flag, a);
+
+  doif(flag);
+
+  add_const(flag + 1, 1);
+
+  endif(flag);
+
+  doif(flag + 1);
+
+  mov(flag, 0);
+  add_const(flag, 1);
+
+  endif(flag + 1);
+}
+
 // Literally just flips the output flag
 // outputted by neq
 void IRFileWriter::eq(size_t a, size_t b, size_t flag) {
   neq(a, b, flag);
+  flip(flag);
+}
+
+void IRFileWriter::eq_const(size_t a, unsigned char val, size_t flag) {
+  neq(a, val, flag);
   flip(flag);
 }
 
@@ -359,8 +384,133 @@ void IRFileWriter::less(size_t a, size_t b, size_t flag) {
   mov(temp1 + 2, 0);
 }
 
+void IRFileWriter::less_const(size_t a, unsigned char val, size_t flag) {
+  size_t x = flag;
+  size_t y = flag + 1;
+  size_t temp0 = flag + 2;
+  size_t temp1 = flag + 3; // This is actually three consecutive cells
+
+  add(x, a);
+  add_const(y, val);
+  shift(0, temp0);
+  m_out << "[-]";
+  shift(temp0, temp1);
+  m_out << "[-]>[-]+>[-]<<";
+  shift(temp1, y);
+  m_out << '[';
+  shift(y, temp0);
+  m_out << '+';
+  shift(temp0, temp1);
+  m_out << '+';
+  shift(temp1, y);
+  m_out << "-]";
+  shift(y, temp0);
+  m_out << '[';
+  shift(temp0, y);
+  m_out << '+';
+  shift(y, temp0);
+  m_out << "-]";
+  shift(temp0, x);
+  m_out << '[';
+  shift(x, temp0);
+  m_out << '+';
+  shift(temp0, x);
+  m_out << "-]+";
+  shift(x, temp1);
+  m_out << "[>-]>[<";
+  shift(temp1, x);
+  m_out << '-';
+  shift(x, temp0);
+  m_out << "[-]";
+  shift(temp0, temp1);
+  m_out << ">->]<+<";
+  shift(temp1, temp0);
+  m_out << '[';
+  shift(temp0, temp1);
+  m_out << "-[>-]>[<";
+  shift(temp1, x);
+  m_out << '-';
+  shift(x, temp0);
+  m_out << "[-]+";
+  shift(temp0, temp1);
+  m_out << ">->]<+<";
+  shift(temp1, temp0);
+  m_out << "-]";
+  shift(temp0, 0);
+
+  mov(y, 0);
+  mov(temp0, 0);
+  mov(temp1, 0);
+  mov(temp1 + 1, 0);
+  mov(temp1 + 2, 0);
+}
+
 void IRFileWriter::greater(size_t a, size_t b, size_t flag) {
   less(b, a, flag);
+}
+
+// unfortunately i cant just use the less_const here because i cant swap the
+// const and the variable in the function call, so i just repeat myself and swap
+// them manually
+void IRFileWriter::greater_const(size_t a, unsigned char val, size_t flag) {
+  size_t x = flag;
+  size_t y = flag + 1;
+  size_t temp0 = flag + 2;
+  size_t temp1 = flag + 3;
+
+  add_const(x, val);
+  add(y, a);
+  shift(0, temp0);
+  m_out << "[-]";
+  shift(temp0, temp1);
+  m_out << "[-]>[-]+>[-]<<";
+  shift(temp1, y);
+  m_out << '[';
+  shift(y, temp0);
+  m_out << '+';
+  shift(temp0, temp1);
+  m_out << '+';
+  shift(temp1, y);
+  m_out << "-]";
+  shift(y, temp0);
+  m_out << '[';
+  shift(temp0, y);
+  m_out << '+';
+  shift(y, temp0);
+  m_out << "-]";
+  shift(temp0, x);
+  m_out << '[';
+  shift(x, temp0);
+  m_out << '+';
+  shift(temp0, x);
+  m_out << "-]+";
+  shift(x, temp1);
+  m_out << "[>-]>[<";
+  shift(temp1, x);
+  m_out << '-';
+  shift(x, temp0);
+  m_out << "[-]";
+  shift(temp0, temp1);
+  m_out << ">->]<+<";
+  shift(temp1, temp0);
+  m_out << '[';
+  shift(temp0, temp1);
+  m_out << "-[>-]>[<";
+  shift(temp1, x);
+  m_out << '-';
+  shift(x, temp0);
+  m_out << "[-]+";
+  shift(temp0, temp1);
+  m_out << ">->]<+<";
+  shift(temp1, temp0);
+  m_out << "-]";
+  shift(temp0, 0);
+
+  mov(y, 0);
+  mov(temp0, 0);
+  mov(temp1, 0);
+  mov(temp1 + 1, 0);
+  mov(temp1 + 2, 0);
 }
 
 void IRFileWriter::div(size_t a, size_t b, size_t dump) {

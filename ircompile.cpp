@@ -183,18 +183,31 @@ void compile_line(IRFileWriter &w, const std::string &raw) {
   } else if (name == "neq") {
     require(args, 3, "neq");
     w.neq(parse_addr(args[0]), parse_addr(args[1]), parse_addr(args[2]));
+  } else if (name == "neq_const") {
+    require(args, 3, "neq_const");
+    w.neq_const(parse_addr(args[0]), parse_byte(args[1]), parse_addr(args[2]));
   } else if (name == "less") {
     require(args, 3, "less");
     w.less(parse_addr(args[0]), parse_addr(args[1]), parse_addr(args[2]));
+  } else if (name == "less_const") {
+    require(args, 3, "less_const");
+    w.less_const(parse_addr(args[0]), parse_byte(args[1]), parse_addr(args[2]));
   } else if (name == "greater") {
     require(args, 3, "greater");
     w.greater(parse_addr(args[0]), parse_addr(args[1]), parse_addr(args[2]));
+  } else if (name == "greater_const") {
+    require(args, 3, "greater_const");
+    w.greater_const(parse_addr(args[0]), parse_byte(args[1]),
+                    parse_addr(args[2]));
   } else if (name == "flip") {
     require(args, 1, "flip");
     w.flip(parse_addr(args[0]));
   } else if (name == "eq") {
     require(args, 3, "eq");
     w.eq(parse_addr(args[0]), parse_addr(args[1]), parse_addr(args[2]));
+  } else if (name == "eq_const") {
+    require(args, 3, "eq_const");
+    w.eq_const(parse_addr(args[0]), parse_byte(args[1]), parse_addr(args[2]));
   } else if (name == "div") {
     require(args, 3, "div");
     w.div(parse_addr(args[0]), parse_addr(args[1]), parse_addr(args[2]));

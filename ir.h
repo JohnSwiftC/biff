@@ -95,17 +95,21 @@ public:
   // ALSO, this REQUIRES two bytes, the
   // byte after flag MUST be zero
   void neq(size_t a, size_t b, size_t flag);
+  void neq_const(size_t a, unsigned char val, size_t flag);
 
   // sets flag to ONE if a and b are equal
   void eq(size_t a, size_t b, size_t flag);
+  void eq_const(size_t a, unsigned char val, size_t flag);
 
   // flag here requires 6 zero bytes
   // flag will be ONE if a < b, ZERO else
   void less(size_t a, size_t b, size_t flag);
+  void less_const(size_t a, unsigned char val, size_t flag);
 
   // Has the same 6 byte flag requirement as less,
   // it just an inverted less, flag will be ONE if a > b
   void greater(size_t a, size_t b, size_t flag);
+  void greater_const(size_t a, unsigned char val, size_t flag);
 
   // This is very clever, and is taken from
   // an esolang wiki algorithm. Finds both the division
