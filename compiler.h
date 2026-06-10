@@ -1,11 +1,14 @@
-#ifndef BIFFC_H
-#define BIFFC_H
+#ifndef COMPILER_H
+#define COMPILER_H
 
-#include <memory>
+#include <cstddef>
 #include <ostream>
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#include "ast.h"
+
 class Scope {
 private:
   std::unordered_map<std::string, size_t> m_vars;
@@ -22,9 +25,6 @@ public:
   void bump_next_free(size_t size);
   bool contains_var(std::string &var);
 };
-
-struct Stmt;
-using StmtPtr = std::unique_ptr<Stmt>;
 
 class Compiler {
 private:
