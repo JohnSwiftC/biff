@@ -45,6 +45,26 @@ void AssignStmt::display() const {
   std::cout << ")";
 }
 
+// This function and expression evaluation are pretty nasty so i think it
+// deserves an explaination. This recursively searches through the expression
+// tree and returns an EvalResult at each level. CONST means that both branches
+// could be done by the compiler and have been smashed at compile time.
+//
+// The important bits are ADDRESS and TEMP. ADDRESS refers to a variable address
+// which must be maintained. These are only returned when evaluating an Expr of
+// derived type VarExpr, and when this function runs on a BinaryExpr node, if a
+// type ADDRESS is returned, it creates and allocates a new byte of type TEMP.
+// This notes that the address can be written to and modified, and this is where
+// operations accumulate into a new cell.
+//
+// This, of course, results in a possible junk cell. Look at the AssignStmt's
+// generate function to see how the final return value of this function can be
+// handled in all of these cases.
+//
+// Also, for any expression, there will be no temp cells left after the
+// expression is fully evaluated. Notice how when a TEMP address is used on the
+// right hand side, it is zeroed and the memory it was using is freed in the
+// scope
 EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
   if (expr->get_type() == ExprType::STRING) {
     throw std::runtime_error("illegal string literal in compound expression");
@@ -103,7 +123,24 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
       return EvalResult{EvalType::CONST, left.val % right.val};
     }
 
-    throw std::runtime_error("unaccounted operator in const eval");
+    if (bin_expr->op == "==") {
+      return EvalResult{EvalType::CONST, left.val == right.val};
+    }
+
+    if (bin_expr->op == "!=") {
+      return EvalResult{EvalType::CONST, left.val != right.val};
+    }
+
+    if (bin_expr->op == "<") {
+      return EvalResult{EvalType::CONST, left.val < right.val};
+    }
+
+    if (bin_expr->op == ">") {
+      return EvalResult{EvalType::CONST, left.val > right.val};
+    }
+
+    throw std::runtime_error("unaccounted operator in const eval: " +
+                             bin_expr->op);
   }
 
   // At least one side lives on the tape. Get the left operand into
@@ -141,7 +178,7 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
     } else if (bin_expr->op == "%") {
       *out << "MOD_CONST: " << acc << ", " << right.val << ", " << dump << '\n';
     } else {
-      throw std::runtime_error("unaccounted operator in eval");
+      throw std::runtime_error("unaccounted operator in eval: " + bin_expr->op);
     }
   } else {
     if (bin_expr->op == "+") {
@@ -155,7 +192,7 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
     } else if (bin_expr->op == "%") {
       *out << "MOD: " << acc << ", " << right.val << ", " << dump << '\n';
     } else {
-      throw std::runtime_error("unaccounted operator in eval");
+      throw std::runtime_error("unaccounted operator in eval: " + bin_expr->op);
     }
   }
 
@@ -243,6 +280,8 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
 
   case EvalType::TEMP: {
     if (!scope.contains_var(name)) {
+      // The address the temp was accumulated in is already in the newest
+      // possible position, so any moving is redundant
       if (result.val == snapshot) {
         scope.set_var_addr(name, result.val);
         scope.set_next_free(result.val + 1);
@@ -256,6 +295,10 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
       break;
     }
 
+    // As explained in the eval function doc,
+    // this handles the case where an existing variable is being reset
+    // to a temp value. set dest to 0, add the temp, and importantly,
+    // drop the temp value.
     size_t dest = scope.get_var_addr(name);
     *out << "MOV: " << dest << ", 0\n";
     *out << "ADD: " << dest << ", " << result.val << '\n';
