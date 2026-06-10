@@ -177,6 +177,28 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
       *out << "DIV_CONST: " << acc << ", " << right.val << ", " << dump << '\n';
     } else if (bin_expr->op == "%") {
       *out << "MOD_CONST: " << acc << ", " << right.val << ", " << dump << '\n';
+    } else if (bin_expr->op == "==") {
+      *out << "EQ_CONST: " << acc << ", " << right.val << ", " << dump << '\n';
+      *out << "MOV: " << acc << ", " << "0\n";
+      *out << "ADD: " << acc << ", " << dump << '\n';
+      *out << "MOV: " << dump << ", " << "0\n";
+    } else if (bin_expr->op == "!=") {
+      *out << "NEQ_CONST: " << acc << ", " << right.val << ", " << dump << '\n';
+      *out << "MOV: " << acc << ", " << "0\n";
+      *out << "ADD: " << acc << ", " << dump << '\n';
+      *out << "MOV: " << dump << ", " << "0\n";
+    } else if (bin_expr->op == "<") {
+      *out << "LESS_CONST: " << acc << ", " << right.val << ", " << dump
+           << '\n';
+      *out << "MOV: " << acc << ", " << "0\n";
+      *out << "ADD: " << acc << ", " << dump << '\n';
+      *out << "MOV: " << dump << ", " << "0\n";
+    } else if (bin_expr->op == ">") {
+      *out << "GREATER_CONST: " << acc << ", " << right.val << ", " << dump
+           << '\n';
+      *out << "MOV: " << acc << ", " << "0\n";
+      *out << "ADD: " << acc << ", " << dump << '\n';
+      *out << "MOV: " << dump << ", " << "0\n";
     } else {
       throw std::runtime_error("unaccounted operator in eval: " + bin_expr->op);
     }
@@ -191,6 +213,26 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
       *out << "DIV: " << acc << ", " << right.val << ", " << dump << '\n';
     } else if (bin_expr->op == "%") {
       *out << "MOD: " << acc << ", " << right.val << ", " << dump << '\n';
+    } else if (bin_expr->op == "==") {
+      *out << "EQ: " << acc << ", " << right.val << ", " << dump << '\n';
+      *out << "MOV: " << acc << ", " << "0\n";
+      *out << "ADD: " << acc << ", " << dump << '\n';
+      *out << "MOV: " << dump << ", " << "0\n";
+    } else if (bin_expr->op == "!=") {
+      *out << "NEQ: " << acc << ", " << right.val << ", " << dump << '\n';
+      *out << "MOV: " << acc << ", " << "0\n";
+      *out << "ADD: " << acc << ", " << dump << '\n';
+      *out << "MOV: " << dump << ", " << "0\n";
+    } else if (bin_expr->op == "<") {
+      *out << "LESS: " << acc << ", " << right.val << ", " << dump << '\n';
+      *out << "MOV: " << acc << ", " << "0\n";
+      *out << "ADD: " << acc << ", " << dump << '\n';
+      *out << "MOV: " << dump << ", " << "0\n";
+    } else if (bin_expr->op == ">") {
+      *out << "GREATER: " << acc << ", " << right.val << ", " << dump << '\n';
+      *out << "MOV: " << acc << ", " << "0\n";
+      *out << "ADD: " << acc << ", " << dump << '\n';
+      *out << "MOV: " << dump << ", " << "0\n";
     } else {
       throw std::runtime_error("unaccounted operator in eval: " + bin_expr->op);
     }

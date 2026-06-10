@@ -319,7 +319,7 @@ void IRFileWriter::eq(size_t a, size_t b, size_t flag) {
 }
 
 void IRFileWriter::eq_const(size_t a, unsigned char val, size_t flag) {
-  neq(a, val, flag);
+  neq_const(a, val, flag);
   flip(flag);
 }
 
