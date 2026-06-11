@@ -1,7 +1,7 @@
 all: biffc ircompile bfopt
 
 biffc:
-	g++ biffc.cpp lexer.cpp ast.cpp parser.cpp codegen.cpp compiler.cpp -Wall -o biffc.out
+	g++ biffc.cpp lexer.cpp ast.cpp parser.cpp codegen.cpp compiler.cpp -Wextra -Wall -o biffc.out
 
 ircompile:
 	g++ ircompile.cpp ir.cpp -o ircompile.out
