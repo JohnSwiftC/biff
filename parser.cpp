@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "ast.h"
 #include "lexer.h"
 
 #include <memory>
@@ -100,7 +101,7 @@ ExprPtr Parser::parse_factor() {
   throw std::runtime_error("expected an expression");
 }
 
-StmtPtr Parser::parse_assign() {
+StmtPtr Parser::parse_assign(AssignStmt::AssignType type) {
   Token &ident = expect_type(TokenType::IDENT, "Can't assign non ident");
 
   expect_type(TokenType::EQUALS, "No matching equals sign for assignment");
@@ -109,7 +110,7 @@ StmtPtr Parser::parse_assign() {
 
   expect_type(TokenType::SEMICOLON, "missing semicolon");
 
-  return std::make_unique<AssignStmt>(ident.get_val(), std::move(expr));
+  return std::make_unique<AssignStmt>(ident.get_val(), std::move(expr), type);
 }
 
 StmtPtr Parser::parse_loop() {
@@ -177,8 +178,15 @@ std::vector<StmtPtr> Parser::parse_program() {
     const Token &curr = peek();
 
     switch (curr.get_type()) {
+
+    case TokenType::LET:
+      advance();
+      expect_type(TokenType::IDENT, "no identifier following let keyword");
+      program.push_back(parse_assign(AssignStmt::AssignType::NEW));
+      break;
+
     case TokenType::IDENT:
-      program.push_back(parse_assign());
+      program.push_back(parse_assign(AssignStmt::AssignType::SET));
       break;
 
     case TokenType::LOOP:

@@ -25,6 +25,7 @@ enum class TokenType {
   SEMICOLON,
   LOOP,
   IF,
+  LET,
   LBRACE,
   RBRACE,
   LPAREN,

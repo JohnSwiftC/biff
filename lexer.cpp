@@ -61,6 +61,8 @@ std::ostream &operator<<(std::ostream &out, const Token &in) {
   case TokenType::IF:
     out << "IF (" << in.m_val << ')';
     break;
+  case TokenType::LET:
+    out << "LET";
   case TokenType::LBRACE:
     out << "LBRACE (" << in.m_val << ')';
     break;
@@ -138,6 +140,8 @@ TokenType Lexer::parse_word(std::string_view word) {
     return TokenType::LOOP;
   } else if (word == "if") {
     return TokenType::IF;
+  } else if (word == "let") {
+    return TokenType::LET;
   } else if (word == "print_str") {
     return TokenType::PRINT_STR;
   } else if (word == "print_val") {

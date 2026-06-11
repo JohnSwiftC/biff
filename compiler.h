@@ -23,7 +23,7 @@ public:
   size_t get_next_free() const;
   void set_next_free(size_t addr);
   void bump_next_free(size_t size);
-  bool contains_var(std::string &var);
+  bool contains_var(std::string &var) const;
 };
 
 class Compiler {
@@ -38,6 +38,10 @@ public:
   void add_scope();
   void remove_scope();
   void generate_program(std::ostream *out);
+
+  bool contains_var(std::string &name) const;
+  size_t get_var(std::string &name) const;
+  void set_var(std::string &name, size_t addr);
 };
 
 #endif

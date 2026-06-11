@@ -31,8 +31,8 @@ void BinaryExpr::display() const {
 }
 ExprType BinaryExpr::get_type() const { return ExprType::BINARY; }
 
-AssignStmt::AssignStmt(std::string name, ExprPtr val)
-    : name{std::move(name)}, val{std::move(val)} {}
+AssignStmt::AssignStmt(std::string name, ExprPtr val, AssignType type)
+    : name{std::move(name)}, val{std::move(val)}, type{type} {}
 void AssignStmt::display() const {
   std::cout << "AssignStmt (" << name << " ";
   val->display();

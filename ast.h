@@ -71,10 +71,16 @@ struct BinaryExpr : Expr {
 };
 
 struct AssignStmt : Stmt {
+  enum class AssignType {
+    NEW,
+    SET,
+  };
+
   std::string name;
   ExprPtr val;
+  AssignType type;
 
-  AssignStmt(std::string name, ExprPtr val);
+  AssignStmt(std::string name, ExprPtr val, AssignType type);
 
   void display() const override;
   void generate(std::ostream *out, Compiler *compiler) override;
