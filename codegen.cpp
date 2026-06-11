@@ -355,3 +355,11 @@ void IfStmt::generate(std::ostream *out, Compiler *compiler) {
 
   *out << "ENDIF: " << snapshot << '\n';
 }
+
+void PrintStrStmt::generate(std::ostream *out, Compiler *compiler) {
+  throw std::runtime_error("print_str codegen not implemented");
+}
+
+void PrintValStmt::generate(std::ostream *out, Compiler *compiler) {
+  throw std::runtime_error("print_val codegen not implemented");
+}

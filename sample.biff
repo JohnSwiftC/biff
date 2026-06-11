@@ -1,9 +1,12 @@
-x = 7;
-y = 12;
-z = 3;
+a = 12;
+b = 13;
 
-hmm = 12 > 3;
+a = a + 2;
 
-if (hmm > 12) {
+if (a > b) {
   yay = 12;
+
+  print_str(a);
+
+  print_val(1 + 4);
 }

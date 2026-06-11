@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "lexer.h"
 
 #include <memory>
 #include <stdexcept>
@@ -142,6 +143,30 @@ StmtPtr Parser::parse_if() {
   return std::make_unique<IfStmt>(std::move(cond), std::move(body));
 }
 
+StmtPtr Parser::parse_print_str() {
+  expect_type(TokenType::PRINT_STR, "failed print_str token");
+  expect_type(TokenType::LPAREN, "built-in function requires open paren");
+
+  ExprPtr target = parse_expression();
+
+  expect_type(TokenType::RPAREN, "print_str statement not closed");
+  expect_type(TokenType::SEMICOLON, "missing semicolon");
+
+  return std::make_unique<PrintStrStmt>(std::move(target));
+}
+
+StmtPtr Parser::parse_print_val() {
+  expect_type(TokenType::PRINT_VAL, "failed print_val token");
+  expect_type(TokenType::LPAREN, "built-in function requires open paren");
+
+  ExprPtr target = parse_expression();
+
+  expect_type(TokenType::RPAREN, "print_val statement not closed");
+  expect_type(TokenType::SEMICOLON, "missing semicolon");
+
+  return std::make_unique<PrintValStmt>(std::move(target));
+}
+
 Parser::Parser(std::vector<Token> stream)
     : m_stream{std::move(stream)}, m_pointer{0}, m_size{m_stream.size()} {}
 
@@ -162,6 +187,13 @@ std::vector<StmtPtr> Parser::parse_program() {
 
     case TokenType::IF:
       program.push_back(parse_if());
+      break;
+
+    case TokenType::PRINT_STR:
+      program.push_back(parse_print_str());
+      break;
+    case TokenType::PRINT_VAL:
+      program.push_back(parse_print_val());
       break;
     // This only breaks parsing
     // if a block is illegally used

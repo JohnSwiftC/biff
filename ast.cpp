@@ -66,3 +66,19 @@ void IfStmt::display() const {
 
   std::cout << ")";
 }
+
+PrintStrStmt::PrintStrStmt(ExprPtr target) : target{std::move(target)} {}
+
+void PrintStrStmt::display() const {
+  std::cout << "PrintStrStmt (";
+  target->display();
+  std::cout << ")";
+}
+
+PrintValStmt::PrintValStmt(ExprPtr target) : target{std::move(target)} {}
+
+void PrintValStmt::display() const {
+  std::cout << "PrintValStmt (";
+  target->display();
+  std::cout << ")";
+}

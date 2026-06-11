@@ -100,4 +100,22 @@ struct IfStmt : Stmt {
   void generate(std::ostream *out, Compiler *compiler) override;
 };
 
+struct PrintStrStmt : Stmt {
+  ExprPtr target;
+
+  PrintStrStmt(ExprPtr target);
+
+  void display() const override;
+  void generate(std::ostream *out, Compiler *compuler) override;
+};
+
+struct PrintValStmt : Stmt {
+  ExprPtr target;
+
+  PrintValStmt(ExprPtr target);
+
+  void display() const override;
+  void generate(std::ostream *out, Compiler *compuler) override;
+};
+
 #endif

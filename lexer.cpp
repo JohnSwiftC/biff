@@ -73,6 +73,12 @@ std::ostream &operator<<(std::ostream &out, const Token &in) {
   case TokenType::RPAREN:
     out << "RPAREN (" << in.m_val << ')';
     break;
+  case TokenType::PRINT_STR:
+    out << "PRINT_STR";
+    break;
+  case TokenType::PRINT_VAL:
+    out << "PRINT_VAL";
+    break;
   }
 
   return out;
@@ -132,6 +138,10 @@ TokenType Lexer::parse_word(std::string_view word) {
     return TokenType::LOOP;
   } else if (word == "if") {
     return TokenType::IF;
+  } else if (word == "print_str") {
+    return TokenType::PRINT_STR;
+  } else if (word == "print_val") {
+    return TokenType::PRINT_VAL;
   }
 
   if (is_numeric(word)) {

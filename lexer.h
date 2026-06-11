@@ -29,6 +29,8 @@ enum class TokenType {
   RBRACE,
   LPAREN,
   RPAREN,
+  PRINT_STR,
+  PRINT_VAL,
 };
 
 class Token {
