@@ -20,7 +20,7 @@ Biff's AST defines two main types: `Stmt` and `Expr`, statements and expressions
 
 In `biffc.cpp`, the `Parser` class is fed the raw token stream produced from the lexer, and produces an array of `StmtPtr`s which can then be used the `Compiler` class for code generation.
 
-Tokens are parsed in chunks, how so depends on which individual parsing function is fired. This is almost always decided by the type of token that the parser is currently pointing to in the token stream. Tokens of type `LOOP` instantly allow the parser to know it should invoke `parse_loop()`, which will create a `LoopStmt`, the same occurs for deciding when to parse tokens as an if statement, and assignment, a built-in function call, etc.
+Tokens are parsed in chunks, how so depends on which individual parsing function is fired. This is almost always decided by the type of token that the parser is currently pointing to in the token stream. Tokens of type `LOOP` instantly allow the parser to know it should invoke `parse_loop()`, which will create a `LoopStmt`, the same occurs for deciding when to parse tokens as an if statement, an assignment, a built-in function call, etc.
 
 ### Compound Expressions
 
