@@ -357,9 +357,65 @@ void IfStmt::generate(std::ostream *out, Compiler *compiler) {
 }
 
 void PrintStrStmt::generate(std::ostream *out, Compiler *compiler) {
-  throw std::runtime_error("print_str codegen not implemented");
+
+  if (target->get_type() == ExprType::STRING) {
+    throw std::runtime_error(
+        "can't use string literals with print_str. this is due to copying that "
+        "would occur if this was allowed. assign a variable to the string to "
+        "print it.");
+  }
+
+  if (target->get_type() != ExprType::VAR) {
+    throw std::runtime_error(
+        "print_str can only take a single variable argument!");
+  }
+
+  VarExpr *var_expr = static_cast<VarExpr *>(target.get());
+
+  Scope &scope = compiler->get_scope();
+
+  if (!scope.contains_var(var_expr->name)) {
+    throw std::runtime_error("variable " + var_expr->name +
+                             " is not defined in the current scope");
+  }
+
+  size_t addr = scope.get_var_addr(var_expr->name);
+
+  *out << "OUZ: " << addr << ", .\n";
 }
 
 void PrintValStmt::generate(std::ostream *out, Compiler *compiler) {
-  throw std::runtime_error("print_val codegen not implemented");
+
+  EvalResult result = eval(out, compiler, target.get());
+  Scope &scope = compiler->get_scope();
+
+  size_t snapshot{scope.get_next_free()};
+  switch (result.type) {
+  case EvalType::CONST: {
+    size_t temp = snapshot;
+    *out << "ADD_CONST: " << temp << ", " << result.val << '\n';
+    *out << "ITOA: " << temp << ", " << temp + 1 << '\n';
+    *out << "MOV: " << temp << ", 0\n";
+    break;
+  }
+
+  case EvalType::ADDRESS: {
+    *out << "ITOA: " << result.val << ", " << scope.get_next_free() << '\n';
+    break;
+  }
+
+  case EvalType::TEMP: {
+    if (snapshot == result.val) {
+      *out << "ITOA: " << result.val << ", " << result.val + 1 << '\n';
+      *out << "MOV: " << result.val << ", 0\n";
+      break;
+    }
+
+    *out << "ADD: " << snapshot << ", " << result.val << '\n';
+    *out << "MOV: " << result.val << ", 0\n";
+    *out << "ITOA: " << snapshot << ", " << snapshot + 1 << '\n';
+    *out << "MOV: " << snapshot << ", 0\n";
+    break;
+  }
+  }
 }

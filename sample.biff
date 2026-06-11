@@ -4,9 +4,9 @@ b = 13;
 a = a + 2;
 
 if (a > b) {
-  yay = 12;
+  
+  my_str = "Hello, World!";
 
-  print_str(a);
+  print_str(my_str);
 
-  print_val(1 + 4);
 }
