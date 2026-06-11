@@ -16,6 +16,7 @@ private:
 
 public:
   Scope();
+  Scope(size_t next_free);
 
   size_t get_var_addr(std::string &var) const;
   void set_var_addr(std::string var, size_t addr);

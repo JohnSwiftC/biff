@@ -1,7 +1,9 @@
 #include "compiler.h"
+#include <cstddef>
 #include <stdexcept>
 
 Scope::Scope() : m_vars{}, m_next_free{1} {}
+Scope::Scope(size_t next_free) : m_vars{}, m_next_free{next_free} {}
 
 size_t Scope::get_var_addr(std::string &var) const { return m_vars.at(var); }
 void Scope::set_var_addr(std::string var, size_t addr) { m_vars[var] = addr; }
@@ -16,8 +18,14 @@ bool Scope::contains_var(std::string &var) const {
 Compiler::Compiler(std::vector<StmtPtr> program)
     : m_scope_stack{Scope()}, m_program{std::move(program)} {}
 Scope &Compiler::get_scope() { return m_scope_stack.back(); }
-void Compiler::add_scope() { m_scope_stack.emplace_back(); }
-void Compiler::remove_scope() { m_scope_stack.pop_back(); }
+void Compiler::add_scope() {
+  m_scope_stack.emplace_back(m_scope_stack.back().get_next_free());
+}
+void Compiler::remove_scope() {
+  size_t carry{m_scope_stack.back().get_next_free()};
+  m_scope_stack.pop_back();
+  m_scope_stack.back().set_next_free(carry);
+}
 void Compiler::generate_program(std::ostream *out) {
   for (StmtPtr &stmt : m_program) {
     stmt->generate(out, this);
