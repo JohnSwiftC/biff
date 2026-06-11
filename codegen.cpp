@@ -1,4 +1,5 @@
 #include "codegen.h"
+#include "ast.h"
 #include "compiler.h"
 
 #include <sstream>
@@ -307,4 +308,50 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
 
 void LoopStmt::generate(std::ostream *out, Compiler *compiler) {}
 
-void IfStmt::generate(std::ostream *out, Compiler *compiler) {}
+void IfStmt::generate(std::ostream *out, Compiler *compiler) {
+  ExprType type = cond->get_type();
+
+  if (type == ExprType::STRING) {
+    throw std::runtime_error(
+        "string literals cannot be evaluated as a condition");
+  }
+
+  Scope &scope = compiler->get_scope();
+  size_t snapshot{scope.get_next_free()};
+  EvalResult result = eval(out, compiler, cond.get());
+
+  switch (result.type) {
+  case EvalType::CONST: {
+    scope.bump_next_free(1);
+    *out << "MOV: " << snapshot << ", " << result.val << '\n';
+    break;
+  }
+
+  case EvalType::ADDRESS: {
+    *out << "ADD: " << snapshot << ", " << result.val << '\n';
+    break;
+  }
+
+  case EvalType::TEMP: {
+    if (result.val == snapshot) {
+      break;
+    }
+
+    // snapshot is a released temp and therefore already zero, so the
+    // ADD acts as a copy. The source temp has to be zeroed because it
+    // ends up above next_free once the flag is reserved
+    *out << "ADD: " << snapshot << ", " << result.val << '\n';
+    *out << "MOV: " << result.val << ", 0\n";
+    break;
+  }
+  }
+
+  scope.set_next_free(snapshot + 1);
+  *out << "DOIF: " << snapshot << '\n';
+
+  for (const StmtPtr &stmt : body) {
+    stmt->generate(out, compiler);
+  }
+
+  *out << "ENDIF: " << snapshot << '\n';
+}
