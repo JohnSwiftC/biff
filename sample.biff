@@ -1,12 +1,16 @@
-a = 12;
-b = 13;
+let a = 1;
 
-a = a + 2;
+let newline = "\n";
+if (1 < 2) {
+  print_val(a);
+  print_str(newline);
+  let a = 2;
+  let scoped = 0;
 
-if (a > b) {
-  
-  my_str = "Hello, World!";
-
-  print_str(my_str);
-
+  print_val(a);
 }
+
+a = "str";
+
+let carry = 1;
+

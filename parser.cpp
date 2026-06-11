@@ -181,7 +181,6 @@ std::vector<StmtPtr> Parser::parse_program() {
 
     case TokenType::LET:
       advance();
-      expect_type(TokenType::IDENT, "no identifier following let keyword");
       program.push_back(parse_assign(AssignStmt::AssignType::NEW));
       break;
 

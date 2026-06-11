@@ -35,14 +35,7 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
 
   if (expr->get_type() == ExprType::VAR) {
     VarExpr *var_expr = static_cast<VarExpr *>(expr);
-    size_t addr{};
-
-    if (compiler->get_scope().contains_var(var_expr->name)) {
-      addr = compiler->get_scope().get_var_addr(var_expr->name);
-    } else {
-      throw std::runtime_error("var " + var_expr->name +
-                               " is not defined in scope");
-    }
+    size_t addr{compiler->get_var(var_expr->name)};
 
     return EvalResult{EvalType::ADDRESS, addr};
   }
@@ -206,102 +199,100 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
 }
 
 void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
-  ExprType type = val->get_type();
+
+  // top level scope
   Scope &scope = compiler->get_scope();
-  if (type == ExprType::STRING) {
-    if (scope.contains_var(name)) {
-      throw std::runtime_error("attempted to redefine string const: " + name);
+  size_t snapshot{scope.get_next_free()};
+
+  switch (type) {
+  case AssignType::NEW: {
+
+    if (val->get_type() == ExprType::STRING) {
+      StringExpr *string_expr = static_cast<StringExpr *>(val.get());
+
+      size_t dest{};
+      dest = snapshot;
+      scope.set_var_addr(name, snapshot);
+      scope.bump_next_free(string_expr->val.size());
+
+      *out << "INSERT_STRING: " << dest << ", " << string_expr->val << '\n';
+      return;
     }
 
-    StringExpr *string_expr = static_cast<StringExpr *>(val.get());
-    size_t string_size = string_expr->val.length();
-    size_t dest = scope.get_next_free();
-    *out << "INSERT_STRING: " << dest << ", " << string_expr->val << '\n';
-
-    scope.set_var_addr(name, dest);
-    scope.bump_next_free(string_size);
-    return;
-  } else if (type == ExprType::NUMBER) {
+    EvalResult result = eval(out, compiler, val.get());
     size_t dest{};
+
     if (scope.contains_var(name)) {
       dest = scope.get_var_addr(name);
+      scope.set_next_free(snapshot);
     } else {
-      dest = scope.get_next_free();
-      scope.set_var_addr(name, dest);
-      scope.bump_next_free(1);
+      dest = snapshot;
+      scope.set_var_addr(name, snapshot);
+      scope.set_next_free(snapshot + 1);
     }
 
-    NumberExpr *number_expr = static_cast<NumberExpr *>(val.get());
-
-    *out << "MOV: " << dest << ", " << number_expr->val << '\n';
-    return;
-  }
-
-  size_t snapshot = scope.get_next_free();
-  EvalResult result = eval(out, compiler, val.get());
-
-  switch (result.type) {
-  case EvalType::CONST: {
-    size_t dest{};
-    if (scope.contains_var(name)) {
-      dest = scope.get_var_addr(name);
-    } else {
-      dest = scope.get_next_free();
-      scope.set_var_addr(name, dest);
-      scope.bump_next_free(1);
-    }
-
-    *out << "MOV: " << dest << ", " << result.val << '\n';
-    break;
-  }
-
-  case EvalType::ADDRESS: {
-    size_t dest{};
-    if (scope.contains_var(name)) {
-      dest = scope.get_var_addr(name);
-    } else {
-      dest = scope.get_next_free();
-      scope.set_var_addr(name, dest);
-      scope.bump_next_free(1);
-    }
-
-    if (dest == result.val) {
-      // x = x;
+    switch (result.type) {
+    case EvalType::CONST: {
+      *out << "MOV: " << dest << ", " << result.val << '\n';
       break;
     }
 
-    *out << "MOV: " << dest << ", 0\n";
-    *out << "ADD: " << dest << ", " << result.val << '\n';
-    break;
-  }
-
-  case EvalType::TEMP: {
-    if (!scope.contains_var(name)) {
-      // The address the temp was accumulated in is already in the newest
-      // possible position, so any moving is redundant
-      if (result.val == snapshot) {
-        scope.set_var_addr(name, result.val);
-        scope.set_next_free(result.val + 1);
+    case EvalType::ADDRESS: {
+      if (result.val == dest) {
         break;
       }
 
-      *out << "ADD: " << snapshot << ", " << result.val << '\n';
+      *out << "MOV: " << dest << ", 0\n";
+      *out << "ADD: " << dest << ", " << result.val << '\n';
+    }
+
+    case EvalType::TEMP: {
+      *out << "MOV: " << dest << ", 0\n";
+      *out << "ADD: " << dest << ", " << result.val << '\n';
       *out << "MOV: " << result.val << ", 0\n";
-      scope.set_var_addr(name, snapshot);
-      scope.set_next_free(snapshot + 1);
+    }
+    }
+
+    break;
+  }
+
+  case AssignType::SET: {
+
+    if (val->get_type() == ExprType::STRING) {
+      throw std::runtime_error(
+          "attempted to redfine variable with a string literal: " + name);
+    }
+
+    EvalResult result = eval(out, compiler, val.get());
+
+    // throws an exception if this name
+    // does not exist anywhere in the scope
+    size_t dest = compiler->get_var(name);
+
+    switch (result.type) {
+    case EvalType::ADDRESS: {
+      if (dest == result.val) {
+        break;
+      }
+
+      *out << "MOV: " << dest << ", 0\n";
+      *out << "ADD: " << dest << ", " << result.val << '\n';
+
       break;
     }
 
-    // As explained in the eval function doc,
-    // this handles the case where an existing variable is being reset
-    // to a temp value. set dest to 0, add the temp, and importantly,
-    // drop the temp value.
-    size_t dest = scope.get_var_addr(name);
-    *out << "MOV: " << dest << ", 0\n";
-    *out << "ADD: " << dest << ", " << result.val << '\n';
-    *out << "MOV: " << result.val << ", 0\n";
-    scope.set_next_free(snapshot);
-    break;
+    case EvalType::CONST: {
+      *out << "MOV: " << dest << ", " << result.val << '\n';
+      break;
+    }
+
+    case EvalType::TEMP: {
+      *out << "MOV: " << dest << ", 0\n";
+      *out << "ADD: " << dest << ", " << result.val << '\n';
+      *out << "MOV: " << dest << ", 0\n";
+      break;
+    }
+    }
   }
   }
 }
@@ -349,9 +340,13 @@ void IfStmt::generate(std::ostream *out, Compiler *compiler) {
   scope.set_next_free(snapshot + 1);
   *out << "DOIF: " << snapshot << '\n';
 
+  compiler->add_scope();
+
   for (const StmtPtr &stmt : body) {
     stmt->generate(out, compiler);
   }
+
+  compiler->remove_scope();
 
   *out << "ENDIF: " << snapshot << '\n';
 }
@@ -359,10 +354,11 @@ void IfStmt::generate(std::ostream *out, Compiler *compiler) {
 void PrintStrStmt::generate(std::ostream *out, Compiler *compiler) {
 
   if (target->get_type() == ExprType::STRING) {
-    throw std::runtime_error(
-        "can't use string literals with print_str. this is due to copying that "
-        "would occur if this was allowed. assign a variable to the string to "
-        "print it.");
+    throw std::runtime_error("can't use string literals with print_str. "
+                             "this is due to copying that "
+                             "would occur if this was allowed. assign a "
+                             "variable to the string to "
+                             "print it.");
   }
 
   if (target->get_type() != ExprType::VAR) {
@@ -372,14 +368,7 @@ void PrintStrStmt::generate(std::ostream *out, Compiler *compiler) {
 
   VarExpr *var_expr = static_cast<VarExpr *>(target.get());
 
-  Scope &scope = compiler->get_scope();
-
-  if (!scope.contains_var(var_expr->name)) {
-    throw std::runtime_error("variable " + var_expr->name +
-                             " is not defined in the current scope");
-  }
-
-  size_t addr = scope.get_var_addr(var_expr->name);
+  size_t addr = compiler->get_var(var_expr->name);
 
   *out << "OUZ: " << addr << ", .\n";
 }
