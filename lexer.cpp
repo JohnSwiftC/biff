@@ -63,6 +63,7 @@ std::ostream &operator<<(std::ostream &out, const Token &in) {
     break;
   case TokenType::LET:
     out << "LET";
+    break;
   case TokenType::LBRACE:
     out << "LBRACE (" << in.m_val << ')';
     break;
