@@ -244,12 +244,18 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
 
       *out << "MOV: " << dest << ", 0\n";
       *out << "ADD: " << dest << ", " << result.val << '\n';
+      break;
     }
 
     case EvalType::TEMP: {
+      if (result.val == dest) {
+        break;
+      }
+
       *out << "MOV: " << dest << ", 0\n";
       *out << "ADD: " << dest << ", " << result.val << '\n';
       *out << "MOV: " << result.val << ", 0\n";
+      break;
     }
     }
 
@@ -289,7 +295,8 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
     case EvalType::TEMP: {
       *out << "MOV: " << dest << ", 0\n";
       *out << "ADD: " << dest << ", " << result.val << '\n';
-      *out << "MOV: " << dest << ", 0\n";
+      *out << "MOV: " << result.val << ", 0\n";
+      scope.set_next_free(snapshot);
       break;
     }
     }

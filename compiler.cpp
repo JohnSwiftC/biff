@@ -33,9 +33,7 @@ void Compiler::generate_program(std::ostream *out) {
 }
 
 bool Compiler::contains_var(std::string &name) const {
-  size_t top_scope{m_scope_stack.size() - 1};
-
-  for (size_t i{top_scope}; i >= 0; --i) {
+  for (size_t i{m_scope_stack.size()}; i-- > 0;) {
     if (m_scope_stack[i].contains_var(name)) {
       return true;
     }
@@ -45,9 +43,7 @@ bool Compiler::contains_var(std::string &name) const {
 }
 
 size_t Compiler::get_var(std::string &name) const {
-  size_t top_scope{m_scope_stack.size() - 1};
-
-  for (size_t i{top_scope}; i >= 0; --i) {
+  for (size_t i{m_scope_stack.size()}; i-- > 0;) {
     if (m_scope_stack[i].contains_var(name)) {
       return m_scope_stack[i].get_var_addr(name);
     }
