@@ -304,7 +304,55 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
   }
 }
 
-void LoopStmt::generate(std::ostream *out, Compiler *compiler) {}
+void LoopStmt::generate(std::ostream *out, Compiler *compiler) {
+  ExprType type = cond->get_type();
+
+  if (type == ExprType::VAR) {
+    VarExpr *var_expr = static_cast<VarExpr *>(cond.get());
+    size_t addr{compiler->get_var(var_expr->name)};
+
+    compiler->add_scope();
+
+    *out << "LOOP: " << addr << '\n';
+
+    for (const StmtPtr &stmt : body) {
+      stmt->generate(out, compiler);
+    }
+
+    *out << "ENDLOOP: " << addr << '\n';
+
+    compiler->remove_scope();
+
+    return;
+  }
+
+  if (type == ExprType::NUMBER) {
+    NumberExpr *number_expr = static_cast<NumberExpr *>(cond.get());
+    Scope &scope = compiler->get_scope();
+
+    size_t addr{scope.get_next_free()};
+    scope.bump_next_free(1);
+
+    *out << "MOV: " << addr << ", " << number_expr->val << '\n';
+
+    compiler->add_scope();
+
+    *out << "LOOP: " << addr << '\n';
+
+    for (const StmtPtr &stmt : body) {
+      stmt->generate(out, compiler);
+    }
+
+    *out << "ENDLOOP: " << addr << '\n';
+
+    compiler->remove_scope();
+
+    return;
+  }
+
+  throw std::runtime_error(
+      "loop conditions can only be number literals or single variables");
+}
 
 void IfStmt::generate(std::ostream *out, Compiler *compiler) {
   ExprType type = cond->get_type();

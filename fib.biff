@@ -1,0 +1,18 @@
+let a = 1;
+let b = 1;
+let temp = 0;
+
+let newline = "\n";
+print_val(a);
+print_str(newline);
+print_val(b);
+print_str(newline);
+
+loop (10) {
+  temp = b;
+  b = a + b;
+  a = temp;
+
+  print_val(b);
+  print_str(newline);
+}

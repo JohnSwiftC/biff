@@ -1,0 +1,8 @@
+let result = 1;
+let factor = 4;
+
+loop (factor) {
+  result = result * factor;
+}
+
+print_val(result);
