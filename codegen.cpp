@@ -20,12 +20,15 @@
 // This, of course, results in a possible junk cell. Look at the AssignStmt's
 // generate function to see how the final return value of this function can be
 // handled in all of these cases.
-EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
-  if (expr->get_type() == ExprType::STRING) {
+EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr)
+{
+  if (expr->get_type() == ExprType::STRING)
+  {
     throw std::runtime_error("illegal string literal in compound expression");
   }
 
-  if (expr->get_type() == ExprType::NUMBER) {
+  if (expr->get_type() == ExprType::NUMBER)
+  {
     NumberExpr *num_expr = static_cast<NumberExpr *>(expr);
     std::stringstream stream(num_expr->val);
     size_t val;
@@ -33,14 +36,16 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
     return EvalResult{EvalType::CONST, val};
   }
 
-  if (expr->get_type() == ExprType::VAR) {
+  if (expr->get_type() == ExprType::VAR)
+  {
     VarExpr *var_expr = static_cast<VarExpr *>(expr);
     size_t addr{compiler->get_var(var_expr->name)};
 
     return EvalResult{EvalType::ADDRESS, addr};
   }
 
-  if (expr->get_type() != ExprType::BINARY) {
+  if (expr->get_type() != ExprType::BINARY)
+  {
     throw std::runtime_error("illegal expression tree configuration");
   }
 
@@ -50,41 +55,61 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
   EvalResult left = eval(out, compiler, bin_expr->left.get());
   EvalResult right = eval(out, compiler, bin_expr->right.get());
 
-  if (left.type == EvalType::CONST && right.type == EvalType::CONST) {
-    if (bin_expr->op == "+") {
+  if (left.type == EvalType::CONST && right.type == EvalType::CONST)
+  {
+    if (bin_expr->op == "+")
+    {
       return EvalResult{EvalType::CONST, left.val + right.val};
     }
 
-    if (bin_expr->op == "-") {
+    if (bin_expr->op == "-")
+    {
       return EvalResult{EvalType::CONST, left.val - right.val};
     }
 
-    if (bin_expr->op == "*") {
+    if (bin_expr->op == "*")
+    {
       return EvalResult{EvalType::CONST, left.val * right.val};
     }
 
-    if (bin_expr->op == "/") {
+    if (bin_expr->op == "/")
+    {
       return EvalResult{EvalType::CONST, left.val / right.val};
     }
 
-    if (bin_expr->op == "%") {
+    if (bin_expr->op == "%")
+    {
       return EvalResult{EvalType::CONST, left.val % right.val};
     }
 
-    if (bin_expr->op == "==") {
+    if (bin_expr->op == "==")
+    {
       return EvalResult{EvalType::CONST, left.val == right.val};
     }
 
-    if (bin_expr->op == "!=") {
+    if (bin_expr->op == "!=")
+    {
       return EvalResult{EvalType::CONST, left.val != right.val};
     }
 
-    if (bin_expr->op == "<") {
+    if (bin_expr->op == "<")
+    {
       return EvalResult{EvalType::CONST, left.val < right.val};
     }
 
-    if (bin_expr->op == ">") {
+    if (bin_expr->op == ">")
+    {
       return EvalResult{EvalType::CONST, left.val > right.val};
+    }
+
+    if (bin_expr->op == ">=")
+    {
+      return EvalResult{EvalType::CONST, left.val >= right.val};
+    }
+
+    if (bin_expr->op == "<=")
+    {
+      return EvalResult{EvalType::CONST, left.val <= right.val};
     }
 
     throw std::runtime_error("unaccounted operator in const eval: " +
@@ -96,15 +121,21 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
   // ADD/SUB preserve src, and MUL/DIV/MOD zero their dumps, so
   // variables and cells above next_free stay intact.
   size_t acc{};
-  if (left.type == EvalType::TEMP) {
+  if (left.type == EvalType::TEMP)
+  {
     acc = left.val;
-  } else {
+  }
+  else
+  {
     acc = scope.get_next_free();
     scope.bump_next_free(1);
 
-    if (left.type == EvalType::CONST) {
+    if (left.type == EvalType::CONST)
+    {
       *out << "MOV: " << acc << ", " << left.val << '\n';
-    } else {
+    }
+    else
+    {
       *out << "MOV: " << acc << ", 0\n";
       *out << "ADD: " << acc << ", " << left.val << '\n';
     }
@@ -114,83 +145,126 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
   // serve as the dump scratch the ops require
   size_t dump = scope.get_next_free();
 
-  if (right.type == EvalType::CONST) {
-    if (bin_expr->op == "+") {
+  if (right.type == EvalType::CONST)
+  {
+    if (bin_expr->op == "+")
+    {
       *out << "ADD_CONST: " << acc << ", " << right.val << '\n';
-    } else if (bin_expr->op == "-") {
+    }
+    else if (bin_expr->op == "-")
+    {
       *out << "SUB_CONST: " << acc << ", " << right.val << '\n';
-    } else if (bin_expr->op == "*") {
+    }
+    else if (bin_expr->op == "*")
+    {
       *out << "MUL_CONST: " << acc << ", " << right.val << ", " << dump << '\n';
-    } else if (bin_expr->op == "/") {
+    }
+    else if (bin_expr->op == "/")
+    {
       *out << "DIV_CONST: " << acc << ", " << right.val << ", " << dump << '\n';
-    } else if (bin_expr->op == "%") {
+    }
+    else if (bin_expr->op == "%")
+    {
       *out << "MOD_CONST: " << acc << ", " << right.val << ", " << dump << '\n';
-    } else if (bin_expr->op == "==") {
+    }
+    else if (bin_expr->op == "==")
+    {
       *out << "EQ_CONST: " << acc << ", " << right.val << ", " << dump << '\n';
       *out << "MOV: " << acc << ", " << "0\n";
       *out << "ADD: " << acc << ", " << dump << '\n';
       *out << "MOV: " << dump << ", " << "0\n";
-    } else if (bin_expr->op == "!=") {
+    }
+    else if (bin_expr->op == "!=")
+    {
       *out << "NEQ_CONST: " << acc << ", " << right.val << ", " << dump << '\n';
       *out << "MOV: " << acc << ", " << "0\n";
       *out << "ADD: " << acc << ", " << dump << '\n';
       *out << "MOV: " << dump << ", " << "0\n";
-    } else if (bin_expr->op == "<") {
+    }
+    else if (bin_expr->op == "<")
+    {
       *out << "LESS_CONST: " << acc << ", " << right.val << ", " << dump
            << '\n';
       *out << "MOV: " << acc << ", " << "0\n";
       *out << "ADD: " << acc << ", " << dump << '\n';
       *out << "MOV: " << dump << ", " << "0\n";
-    } else if (bin_expr->op == ">") {
+    }
+    else if (bin_expr->op == ">")
+    {
       *out << "GREATER_CONST: " << acc << ", " << right.val << ", " << dump
            << '\n';
       *out << "MOV: " << acc << ", " << "0\n";
       *out << "ADD: " << acc << ", " << dump << '\n';
       *out << "MOV: " << dump << ", " << "0\n";
-    } else {
+    }
+    else
+    {
       throw std::runtime_error("unaccounted operator in eval: " + bin_expr->op);
     }
-  } else {
-    if (bin_expr->op == "+") {
+  }
+  else
+  {
+    if (bin_expr->op == "+")
+    {
       *out << "ADD: " << acc << ", " << right.val << '\n';
-    } else if (bin_expr->op == "-") {
+    }
+    else if (bin_expr->op == "-")
+    {
       *out << "SUB: " << acc << ", " << right.val << '\n';
-    } else if (bin_expr->op == "*") {
+    }
+    else if (bin_expr->op == "*")
+    {
       *out << "MUL: " << acc << ", " << right.val << ", " << dump << '\n';
-    } else if (bin_expr->op == "/") {
+    }
+    else if (bin_expr->op == "/")
+    {
       *out << "DIV: " << acc << ", " << right.val << ", " << dump << '\n';
-    } else if (bin_expr->op == "%") {
+    }
+    else if (bin_expr->op == "%")
+    {
       *out << "MOD: " << acc << ", " << right.val << ", " << dump << '\n';
-    } else if (bin_expr->op == "==") {
+    }
+    else if (bin_expr->op == "==")
+    {
       *out << "EQ: " << acc << ", " << right.val << ", " << dump << '\n';
       *out << "MOV: " << acc << ", " << "0\n";
       *out << "ADD: " << acc << ", " << dump << '\n';
       *out << "MOV: " << dump << ", " << "0\n";
-    } else if (bin_expr->op == "!=") {
+    }
+    else if (bin_expr->op == "!=")
+    {
       *out << "NEQ: " << acc << ", " << right.val << ", " << dump << '\n';
       *out << "MOV: " << acc << ", " << "0\n";
       *out << "ADD: " << acc << ", " << dump << '\n';
       *out << "MOV: " << dump << ", " << "0\n";
-    } else if (bin_expr->op == "<") {
+    }
+    else if (bin_expr->op == "<")
+    {
       *out << "LESS: " << acc << ", " << right.val << ", " << dump << '\n';
       *out << "MOV: " << acc << ", " << "0\n";
       *out << "ADD: " << acc << ", " << dump << '\n';
       *out << "MOV: " << dump << ", " << "0\n";
-    } else if (bin_expr->op == ">") {
+    }
+    else if (bin_expr->op == ">")
+    {
       *out << "GREATER: " << acc << ", " << right.val << ", " << dump << '\n';
       *out << "MOV: " << acc << ", " << "0\n";
       *out << "ADD: " << acc << ", " << dump << '\n';
       *out << "MOV: " << dump << ", " << "0\n";
-    } else {
+    }
+    else
+    {
       throw std::runtime_error("unaccounted operator in eval: " + bin_expr->op);
     }
   }
 
-  if (right.type == EvalType::TEMP) {
+  if (right.type == EvalType::TEMP)
+  {
     // Release the right-hand temp. It must be zeroed so it can
     // later be reused as dump scratch
     *out << "MOV: " << right.val << ", 0\n";
-    if (right.val + 1 == scope.get_next_free()) {
+    if (right.val + 1 == scope.get_next_free())
+    {
       scope.set_next_free(right.val);
     }
   }
@@ -198,16 +272,20 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
   return EvalResult{EvalType::TEMP, acc};
 }
 
-void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
+void AssignStmt::generate(std::ostream *out, Compiler *compiler)
+{
 
   // top level scope
   Scope &scope = compiler->get_scope();
   size_t snapshot{scope.get_next_free()};
 
-  switch (type) {
-  case AssignType::NEW: {
+  switch (type)
+  {
+  case AssignType::NEW:
+  {
 
-    if (val->get_type() == ExprType::STRING) {
+    if (val->get_type() == ExprType::STRING)
+    {
       StringExpr *string_expr = static_cast<StringExpr *>(val.get());
 
       size_t dest{};
@@ -222,23 +300,30 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
     EvalResult result = eval(out, compiler, val.get());
     size_t dest{};
 
-    if (scope.contains_var(name)) {
+    if (scope.contains_var(name))
+    {
       dest = scope.get_var_addr(name);
       scope.set_next_free(snapshot);
-    } else {
+    }
+    else
+    {
       dest = snapshot;
       scope.set_var_addr(name, snapshot);
       scope.set_next_free(snapshot + 1);
     }
 
-    switch (result.type) {
-    case EvalType::CONST: {
+    switch (result.type)
+    {
+    case EvalType::CONST:
+    {
       *out << "MOV: " << dest << ", " << result.val << '\n';
       break;
     }
 
-    case EvalType::ADDRESS: {
-      if (result.val == dest) {
+    case EvalType::ADDRESS:
+    {
+      if (result.val == dest)
+      {
         break;
       }
 
@@ -247,8 +332,10 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
       break;
     }
 
-    case EvalType::TEMP: {
-      if (result.val == dest) {
+    case EvalType::TEMP:
+    {
+      if (result.val == dest)
+      {
         break;
       }
 
@@ -262,9 +349,11 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
     break;
   }
 
-  case AssignType::SET: {
+  case AssignType::SET:
+  {
 
-    if (val->get_type() == ExprType::STRING) {
+    if (val->get_type() == ExprType::STRING)
+    {
       throw std::runtime_error(
           "attempted to redfine variable with a string literal: " + name);
     }
@@ -275,9 +364,12 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
     // does not exist anywhere in the scope
     size_t dest = compiler->get_var(name);
 
-    switch (result.type) {
-    case EvalType::ADDRESS: {
-      if (dest == result.val) {
+    switch (result.type)
+    {
+    case EvalType::ADDRESS:
+    {
+      if (dest == result.val)
+      {
         break;
       }
 
@@ -287,12 +379,14 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
       break;
     }
 
-    case EvalType::CONST: {
+    case EvalType::CONST:
+    {
       *out << "MOV: " << dest << ", " << result.val << '\n';
       break;
     }
 
-    case EvalType::TEMP: {
+    case EvalType::TEMP:
+    {
       *out << "MOV: " << dest << ", 0\n";
       *out << "ADD: " << dest << ", " << result.val << '\n';
       *out << "MOV: " << result.val << ", 0\n";
@@ -304,10 +398,12 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
   }
 }
 
-void LoopStmt::generate(std::ostream *out, Compiler *compiler) {
+void LoopStmt::generate(std::ostream *out, Compiler *compiler)
+{
   ExprType type = cond->get_type();
 
-  if (type == ExprType::VAR) {
+  if (type == ExprType::VAR)
+  {
     VarExpr *var_expr = static_cast<VarExpr *>(cond.get());
     size_t addr{compiler->get_var(var_expr->name)};
 
@@ -315,7 +411,8 @@ void LoopStmt::generate(std::ostream *out, Compiler *compiler) {
 
     *out << "LOOP: " << addr << '\n';
 
-    for (const StmtPtr &stmt : body) {
+    for (const StmtPtr &stmt : body)
+    {
       stmt->generate(out, compiler);
     }
 
@@ -326,7 +423,8 @@ void LoopStmt::generate(std::ostream *out, Compiler *compiler) {
     return;
   }
 
-  if (type == ExprType::NUMBER) {
+  if (type == ExprType::NUMBER)
+  {
     NumberExpr *number_expr = static_cast<NumberExpr *>(cond.get());
     Scope &scope = compiler->get_scope();
 
@@ -339,7 +437,8 @@ void LoopStmt::generate(std::ostream *out, Compiler *compiler) {
 
     *out << "LOOP: " << addr << '\n';
 
-    for (const StmtPtr &stmt : body) {
+    for (const StmtPtr &stmt : body)
+    {
       stmt->generate(out, compiler);
     }
 
@@ -354,10 +453,12 @@ void LoopStmt::generate(std::ostream *out, Compiler *compiler) {
       "loop conditions can only be number literals or single variables");
 }
 
-void IfStmt::generate(std::ostream *out, Compiler *compiler) {
+void IfStmt::generate(std::ostream *out, Compiler *compiler)
+{
   ExprType type = cond->get_type();
 
-  if (type == ExprType::STRING) {
+  if (type == ExprType::STRING)
+  {
     throw std::runtime_error(
         "string literals cannot be evaluated as a condition");
   }
@@ -366,20 +467,25 @@ void IfStmt::generate(std::ostream *out, Compiler *compiler) {
   size_t snapshot{scope.get_next_free()};
   EvalResult result = eval(out, compiler, cond.get());
 
-  switch (result.type) {
-  case EvalType::CONST: {
+  switch (result.type)
+  {
+  case EvalType::CONST:
+  {
     scope.bump_next_free(1);
     *out << "MOV: " << snapshot << ", " << result.val << '\n';
     break;
   }
 
-  case EvalType::ADDRESS: {
+  case EvalType::ADDRESS:
+  {
     *out << "ADD: " << snapshot << ", " << result.val << '\n';
     break;
   }
 
-  case EvalType::TEMP: {
-    if (result.val == snapshot) {
+  case EvalType::TEMP:
+  {
+    if (result.val == snapshot)
+    {
       break;
     }
 
@@ -397,7 +503,8 @@ void IfStmt::generate(std::ostream *out, Compiler *compiler) {
 
   compiler->add_scope();
 
-  for (const StmtPtr &stmt : body) {
+  for (const StmtPtr &stmt : body)
+  {
     stmt->generate(out, compiler);
   }
 
@@ -406,9 +513,11 @@ void IfStmt::generate(std::ostream *out, Compiler *compiler) {
   *out << "ENDIF: " << snapshot << '\n';
 }
 
-void PrintStrStmt::generate(std::ostream *out, Compiler *compiler) {
+void PrintStrStmt::generate(std::ostream *out, Compiler *compiler)
+{
 
-  if (target->get_type() == ExprType::STRING) {
+  if (target->get_type() == ExprType::STRING)
+  {
     throw std::runtime_error("can't use string literals with print_str. "
                              "this is due to copying that "
                              "would occur if this was allowed. assign a "
@@ -416,7 +525,8 @@ void PrintStrStmt::generate(std::ostream *out, Compiler *compiler) {
                              "print it.");
   }
 
-  if (target->get_type() != ExprType::VAR) {
+  if (target->get_type() != ExprType::VAR)
+  {
     throw std::runtime_error(
         "print_str can only take a single variable argument!");
   }
@@ -428,14 +538,17 @@ void PrintStrStmt::generate(std::ostream *out, Compiler *compiler) {
   *out << "OUZ: " << addr << ", .\n";
 }
 
-void PrintValStmt::generate(std::ostream *out, Compiler *compiler) {
+void PrintValStmt::generate(std::ostream *out, Compiler *compiler)
+{
 
   EvalResult result = eval(out, compiler, target.get());
   Scope &scope = compiler->get_scope();
 
   size_t snapshot{scope.get_next_free()};
-  switch (result.type) {
-  case EvalType::CONST: {
+  switch (result.type)
+  {
+  case EvalType::CONST:
+  {
     size_t temp = snapshot;
     *out << "ADD_CONST: " << temp << ", " << result.val << '\n';
     *out << "ITOA: " << temp << ", " << temp + 1 << '\n';
@@ -443,13 +556,16 @@ void PrintValStmt::generate(std::ostream *out, Compiler *compiler) {
     break;
   }
 
-  case EvalType::ADDRESS: {
+  case EvalType::ADDRESS:
+  {
     *out << "ITOA: " << result.val << ", " << scope.get_next_free() << '\n';
     break;
   }
 
-  case EvalType::TEMP: {
-    if (snapshot == result.val) {
+  case EvalType::TEMP:
+  {
+    if (snapshot == result.val)
+    {
       *out << "ITOA: " << result.val << ", " << result.val + 1 << '\n';
       *out << "MOV: " << result.val << ", 0\n";
       break;
