@@ -1,0 +1,21 @@
+let a = 1;
+let newline = "\n";
+
+let fizz = "FIZZ";
+let buzz = "BUZZ";
+
+loop (100) {
+  if (a % 3 == 0) {
+    print_str(fizz);
+  }
+
+  if (a % 5 == 0) {
+    print_str(buzz);
+  }
+
+  print_val(a);
+
+  print_str(newline);
+
+  a = a + 1;
+}
