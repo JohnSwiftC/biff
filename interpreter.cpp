@@ -3,18 +3,28 @@
 #include <iostream>
 #include <istream>
 #include <stack>
+#include <vector>
 
 void run_bf(const std::string &program) {
   size_t len{program.size()};
   size_t ptr{};
   size_t curr_instr{};
-  std::array<unsigned char, 10000> tape;
+  std::array<unsigned char, 10000> tape{};
 
-  for (size_t i{}; i < 5000; ++i) {
-    tape[i] = 0;
+  std::vector<size_t> match(len);
+  {
+    std::stack<size_t> opening_loops;
+    for (size_t i{}; i < len; ++i) {
+      if (program[i] == '[') {
+        opening_loops.push(i);
+      } else if (program[i] == ']') {
+        size_t open = opening_loops.top();
+        opening_loops.pop();
+        match[open] = i;
+        match[i] = open;
+      }
+    }
   }
-
-  std::stack<size_t> opening_loops;
 
   while (curr_instr != len) {
     switch (program[curr_instr]) {
@@ -47,8 +57,11 @@ void run_bf(const std::string &program) {
       break;
     }
     case '[': {
-      opening_loops.push(curr_instr);
-      curr_instr++;
+      if (tape[ptr] == 0) {
+        curr_instr = match[curr_instr] + 1;
+      } else {
+        curr_instr++;
+      }
       break;
     }
     case '.': {
@@ -57,13 +70,11 @@ void run_bf(const std::string &program) {
       break;
     }
     case ']': {
-      size_t jump = opening_loops.top();
       if (tape[ptr] != 0) {
-        curr_instr = jump;
+        curr_instr = match[curr_instr] + 1;
       } else {
         curr_instr++;
       }
-      opening_loops.pop();
       break;
     }
 
