@@ -1,0 +1,29 @@
+let is_prime = " is prime!\n";
+let not_prime = " is not prime!\n";
+
+let a = 3;
+let b = 0;
+
+loop (198) {
+  b = a - 1;
+  let is_prime_flag = 1;
+  loop (b) {
+    if (a % b == 0) {
+      if (b != 1) {
+        is_prime_flag = 0;
+      }
+    }
+  }
+
+  if (is_prime_flag) {
+    print_val(a);
+    print_str(is_prime);
+  }
+
+  if (!is_prime_flag) {
+    print_val(a);
+    print_str(not_prime);
+  }
+
+  a = a + 1;
+}
