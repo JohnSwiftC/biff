@@ -22,6 +22,7 @@ enum class TokenType {
   GT,
   LEQ,
   GEQ,
+  OR,
   SEMICOLON,
   LOOP,
   IF,
