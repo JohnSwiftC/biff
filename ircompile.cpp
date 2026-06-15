@@ -211,6 +211,21 @@ void compile_line(IRFileWriter &w, const std::string &raw) {
   } else if (name == "div") {
     require(args, 3, "div");
     w.div(parse_addr(args[0]), parse_addr(args[1]), parse_addr(args[2]));
+  } else if (name == "less_or_eq") {
+    require(args, 3, "less_or_eq");
+    w.less_or_eq(parse_addr(args[0]), parse_addr(args[1]), parse_addr(args[2]));
+  } else if (name == "less_or_eq_const") {
+    require(args, 3, "less_or_eq_const");
+    w.less_or_eq_const(parse_addr(args[0]), parse_byte(args[1]),
+                       parse_addr(args[2]));
+  } else if (name == "greater_or_eq") {
+    require(args, 3, "greater_or_eq");
+    w.greater_or_eq(parse_addr(args[0]), parse_addr(args[1]),
+                    parse_addr(args[2]));
+  } else if (name == "greater_or_eq_const") {
+    require(args, 3, "greater_or_eq_const");
+    w.greater_or_eq_const(parse_addr(args[0]), parse_byte(args[1]),
+                          parse_addr(args[2]));
   } else if (name == "div_const") {
     require(args, 3, "div_const");
     w.div_const(parse_addr(args[0]), parse_byte(args[1]), parse_addr(args[2]));
