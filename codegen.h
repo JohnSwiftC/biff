@@ -29,5 +29,6 @@ struct EvalResult {
 // needed to compute it. Temps it allocates are reclaimed by the
 // caller with Scope::set_next_free once the result is consumed
 EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr);
+EvalResult eval_unary(std::ostream *out, Compiler *compiler, UnaryExpr *unary);
 
 #endif

@@ -2,6 +2,7 @@
 #include "ast.h"
 #include "compiler.h"
 
+#include <ostream>
 #include <sstream>
 #include <stdexcept>
 
@@ -38,6 +39,10 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
     size_t addr{compiler->get_var(var_expr->name)};
 
     return EvalResult{EvalType::ADDRESS, addr};
+  }
+
+  if (expr->get_type() == ExprType::UNARY) {
+    return eval_unary(out, compiler, static_cast<UnaryExpr *>(expr));
   }
 
   if (expr->get_type() != ExprType::BINARY) {
@@ -228,6 +233,60 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
   }
 
   return EvalResult{EvalType::TEMP, acc};
+}
+
+EvalResult eval_unary(std::ostream *out, Compiler *compiler, UnaryExpr *unary) {
+  Scope &scope = compiler->get_scope();
+  size_t snapshot = scope.get_next_free();
+  EvalResult result = eval(out, compiler, unary->operand.get());
+
+  switch (result.type) {
+  case EvalType::CONST: {
+    size_t new_val{};
+    if (unary->op == "!") {
+      if (result.val == 0) {
+        new_val = 1;
+      } else {
+        new_val = 0;
+      }
+    }
+
+    return EvalResult{EvalType::CONST, new_val};
+  }
+
+  case EvalType::ADDRESS: {
+    size_t dest{snapshot};
+    scope.bump_next_free(1);
+    if (unary->op == "!") {
+      *out << "MOV: " << dest << ", 0\n";
+      *out << "ADD: " << dest << ", " << result.val << '\n';
+      *out << "FLIP: " << dest << '\n';
+    }
+
+    return EvalResult{EvalType::TEMP, dest};
+  }
+
+  case EvalType::TEMP: {
+    // handle temp bs first
+
+    size_t dest{snapshot};
+
+    if (result.val != dest) {
+      *out << "MOV: " << dest << ", 0\n";
+      *out << "ADD: " << dest << ", " << result.val << '\n';
+      *out << "MOV: " << result.val << ", 0\n";
+      scope.set_next_free(result.val);
+    }
+
+    if (unary->op == "!") {
+      *out << "FLIP: " << dest << '\n';
+    }
+
+    return EvalResult{EvalType::TEMP, dest};
+  }
+  }
+
+  throw std::runtime_error("magic unknown EvalType reached in parse_unary");
 }
 
 void AssignStmt::generate(std::ostream *out, Compiler *compiler) {

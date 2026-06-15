@@ -26,8 +26,6 @@ private:
   Token &expect_type(const TokenType &type, std::string on_fail);
   Token &advance();
 
-  // The expression grammar in descent order:
-  // each level binds tighter than the one above
   ExprPtr parse_expression();
   ExprPtr parse_additive();
   ExprPtr parse_term();

@@ -172,6 +172,10 @@ void Lexer::feed(std::string line) {
     std::string word;
     if (is_punct(line[i])) {
       word += line[i++];
+      // the consequences of writing a bad lexer
+      if (word == "!" && i < line.length() && line[i] == '=') {
+        word += line[i++];
+      }
     } else if (line[i] == '"') {
       word += line[i++];
       while (i < line.length() && line[i] != '"') {
