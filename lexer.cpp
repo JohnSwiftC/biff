@@ -61,6 +61,9 @@ std::ostream &operator<<(std::ostream &out, const Token &in) {
   case TokenType::IF:
     out << "IF (" << in.m_val << ')';
     break;
+  case TokenType::NOT:
+    out << "NOT (" << in.m_val << ')';
+    break;
   case TokenType::LET:
     out << "LET";
     break;
@@ -95,7 +98,7 @@ bool Lexer::is_numeric(std::string_view word) {
 }
 
 bool Lexer::is_punct(char c) {
-  return c == ';' || c == '{' || c == '}' || c == '(' || c == ')';
+  return c == ';' || c == '{' || c == '}' || c == '(' || c == ')' || c == '!';
 }
 
 TokenType Lexer::parse_word(std::string_view word) {
@@ -141,6 +144,8 @@ TokenType Lexer::parse_word(std::string_view word) {
     return TokenType::LOOP;
   } else if (word == "if") {
     return TokenType::IF;
+  } else if (word == "!") {
+    return TokenType::NOT;
   } else if (word == "let") {
     return TokenType::LET;
   } else if (word == "print_str") {

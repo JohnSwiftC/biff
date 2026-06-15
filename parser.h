@@ -31,6 +31,7 @@ private:
   ExprPtr parse_expression();
   ExprPtr parse_additive();
   ExprPtr parse_term();
+  ExprPtr parse_unary();
   ExprPtr parse_factor();
 
   StmtPtr parse_assign(AssignStmt::AssignType type);

@@ -68,17 +68,27 @@ ExprPtr Parser::parse_additive() {
 }
 
 ExprPtr Parser::parse_term() {
-  ExprPtr left = parse_factor();
+  ExprPtr left = parse_unary();
 
   while (check_type(TokenType::MUL) || check_type(TokenType::DIV) ||
          check_type(TokenType::MOD)) {
     std::string op = advance().get_val();
-    ExprPtr right = parse_factor();
+    ExprPtr right = parse_unary();
     left = std::make_unique<BinaryExpr>(std::move(op), std::move(left),
                                         std::move(right));
   }
 
   return left;
+}
+
+ExprPtr Parser::parse_unary() {
+  if (check_type(TokenType::NOT)) {
+    std::string op = advance().get_val();
+    ExprPtr operand = parse_unary();
+    return std::make_unique<UnaryExpr>(std::move(op), std::move(operand));
+  }
+
+  return parse_factor();
 }
 
 ExprPtr Parser::parse_factor() {

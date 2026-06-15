@@ -31,6 +31,15 @@ void BinaryExpr::display() const {
 }
 ExprType BinaryExpr::get_type() const { return ExprType::BINARY; }
 
+UnaryExpr::UnaryExpr(std::string op, ExprPtr operand)
+    : op{std::move(op)}, operand{std::move(operand)} {}
+void UnaryExpr::display() const {
+  std::cout << '(' << op;
+  operand->display();
+  std::cout << ')';
+}
+ExprType UnaryExpr::get_type() const { return ExprType::UNARY; }
+
 AssignStmt::AssignStmt(std::string name, ExprPtr val, AssignType type)
     : name{std::move(name)}, val{std::move(val)}, type{type} {}
 void AssignStmt::display() const {

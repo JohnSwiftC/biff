@@ -13,6 +13,7 @@ enum class ExprType {
   NUMBER,
   STRING,
   BINARY,
+  UNARY,
 };
 
 struct Expr {
@@ -65,6 +66,16 @@ struct BinaryExpr : Expr {
   ExprPtr right;
 
   BinaryExpr(std::string op, ExprPtr left, ExprPtr right);
+
+  void display() const override;
+  ExprType get_type() const override;
+};
+
+struct UnaryExpr : Expr {
+  std::string op;
+  ExprPtr operand;
+
+  UnaryExpr(std::string op, ExprPtr operand);
 
   void display() const override;
   ExprType get_type() const override;
