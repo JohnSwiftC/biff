@@ -13,7 +13,11 @@ loop (100) {
     print_str(buzz);
   }
 
-  print_val(a);
+  if (a % 5 != 0) {
+    if (a % 3 != 0) {
+      print_val(a);
+    }
+  }
 
   print_str(newline);
 
