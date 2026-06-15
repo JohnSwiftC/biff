@@ -1,7 +1,6 @@
 #include "ir.h"
 #include <cstddef>
 #include <ostream>
-#include <stdexcept>
 
 void IRFileWriter::mov(size_t addr, unsigned char val) {
   shift(0, addr);
@@ -511,6 +510,56 @@ void IRFileWriter::greater_const(size_t a, unsigned char val, size_t flag) {
   mov(temp1, 0);
   mov(temp1 + 1, 0);
   mov(temp1 + 2, 0);
+}
+
+void IRFileWriter::less_or_eq(size_t a, size_t b, size_t flag) {
+  less(a, b, flag);
+  eq(a, b, flag + 1);
+
+  shift(0, flag + 1);
+
+  // could add but this is faster and pretty easy to find as
+  // a gadget
+  // adds the value in flag + 1 to flag until flag + 1 is zero.
+  m_out << "[<+>-]";
+
+  shift(flag + 1, 0);
+}
+
+void IRFileWriter::less_or_eq_const(size_t a, unsigned char val, size_t flag) {
+  less_const(a, val, flag);
+  eq_const(a, val, flag + 1);
+
+  shift(0, flag + 1);
+
+  m_out << "[<+>-]";
+
+  shift(flag + 1, 0);
+}
+
+void IRFileWriter::greater_or_eq(size_t a, size_t b, size_t flag) {
+
+  greater(a, b, flag);
+  eq(a, b, flag + 1);
+
+  shift(0, flag + 1);
+
+  m_out << "[<+>-]";
+
+  shift(flag + 1, 0);
+}
+
+void IRFileWriter::greater_or_eq_const(size_t a, unsigned char val,
+                                       size_t flag) {
+
+  greater_const(a, val, flag);
+  eq_const(a, val, flag + 1);
+
+  shift(0, flag + 1);
+
+  m_out << "[<+>-]";
+
+  shift(flag + 1, 0);
 }
 
 void IRFileWriter::div(size_t a, size_t b, size_t dump) {

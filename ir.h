@@ -117,7 +117,7 @@ public:
   void less_or_eq(size_t a, size_t b, size_t flag);
   void less_or_eq_const(size_t a, unsigned char val, size_t flag);
   void greater_or_eq(size_t a, size_t b, size_t flag);
-  void greater_or_eq_const(size_t a, size_t b, size_t flag);
+  void greater_or_eq_const(size_t a, unsigned char val, size_t flag);
 
   // This is very clever, and is taken from
   // an esolang wiki algorithm. Finds both the division
