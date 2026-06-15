@@ -111,6 +111,14 @@ public:
   void greater(size_t a, size_t b, size_t flag);
   void greater_const(size_t a, unsigned char val, size_t flag);
 
+  // These instructions just perform the both of the given operations
+  // and adds the result to the flag cell. as a result, because of a logical OR
+  // flag will still be strictly ONE if the statement is true, ZERO if false
+  void less_or_eq(size_t a, size_t b, size_t flag);
+  void less_or_eq_const(size_t a, unsigned char val, size_t flag);
+  void greater_or_eq(size_t a, size_t b, size_t flag);
+  void greater_or_eq_const(size_t a, size_t b, size_t flag);
+
   // This is very clever, and is taken from
   // an esolang wiki algorithm. Finds both the division
   // and modulus in a divion
