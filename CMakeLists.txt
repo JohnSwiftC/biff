@@ -29,3 +29,6 @@ add_executable(ircompile
 
 add_executable(bfopt bfopt.cpp)
 target_compile_options(bfopt PRIVATE ${WARN_FLAGS} ${WERROR_FLAG})
+
+add_executable(interpreter interpreter.cpp)
+target_compile_options(interpreter PRIVATE ${WARN_FLAGS} ${WERROR_FLAG})
