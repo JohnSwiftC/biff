@@ -1,9 +1,9 @@
 #include "parser.h"
 #include "ast.h"
+#include "compexcept.h"
 #include "lexer.h"
 
 #include <memory>
-#include <stdexcept>
 
 bool Parser::check(const Token &token) const {
   return (token.get_type() == m_stream[m_pointer].get_type() &&
@@ -26,7 +26,8 @@ Token &Parser::expect(const Token &token, std::string on_fail) {
     return m_stream[m_pointer++];
   }
 
-  throw std::runtime_error(on_fail.c_str());
+  const Token &curr_token = peek();
+  throw CompilerException(curr_token.get_line(), std::move(on_fail));
 }
 
 Token &Parser::expect_type(const TokenType &type, std::string on_fail) {
@@ -34,7 +35,8 @@ Token &Parser::expect_type(const TokenType &type, std::string on_fail) {
     return m_stream[m_pointer++];
   }
 
-  throw std::runtime_error(on_fail.c_str());
+  const Token &token = peek();
+  throw CompilerException(token.get_line(), std::move(on_fail));
 }
 
 Token &Parser::advance() { return m_stream[m_pointer++]; }
@@ -45,10 +47,11 @@ ExprPtr Parser::parse_expression() {
   while (check_type(TokenType::EQ) || check_type(TokenType::NEQ) ||
          check_type(TokenType::LT) || check_type(TokenType::GT) ||
          check_type(TokenType::LEQ) || check_type(TokenType::GEQ)) {
-    std::string op = advance().get_val();
+    Token &token = advance();
+    std::string op = token.get_val();
     ExprPtr right = parse_additive();
     left = std::make_unique<BinaryExpr>(std::move(op), std::move(left),
-                                        std::move(right));
+                                        std::move(right), token.get_line());
   }
 
   return left;
@@ -58,10 +61,11 @@ ExprPtr Parser::parse_additive() {
   ExprPtr left = parse_term();
 
   while (check_type(TokenType::ADD) || check_type(TokenType::SUB)) {
-    std::string op = advance().get_val();
+    Token &token = advance();
+    std::string op = token.get_val();
     ExprPtr right = parse_term();
     left = std::make_unique<BinaryExpr>(std::move(op), std::move(left),
-                                        std::move(right));
+                                        std::move(right), token.get_line());
   }
 
   return left;
@@ -72,10 +76,11 @@ ExprPtr Parser::parse_term() {
 
   while (check_type(TokenType::MUL) || check_type(TokenType::DIV) ||
          check_type(TokenType::MOD)) {
-    std::string op = advance().get_val();
+    Token &token = advance();
+    std::string op = token.get_val();
     ExprPtr right = parse_unary();
     left = std::make_unique<BinaryExpr>(std::move(op), std::move(left),
-                                        std::move(right));
+                                        std::move(right), token.get_line());
   }
 
   return left;
@@ -83,23 +88,26 @@ ExprPtr Parser::parse_term() {
 
 ExprPtr Parser::parse_unary() {
   if (check_type(TokenType::NOT)) {
-    std::string op = advance().get_val();
+    Token &token = advance();
+    std::string op = token.get_val();
     ExprPtr operand = parse_unary();
-    return std::make_unique<UnaryExpr>(std::move(op), std::move(operand));
+    return std::make_unique<UnaryExpr>(std::move(op), std::move(operand),
+                                       token.get_line());
   }
 
   return parse_factor();
 }
 
 ExprPtr Parser::parse_factor() {
+  const Token &token = peek();
   if (check_type(TokenType::NUMBER)) {
-    return std::make_unique<NumberExpr>(advance().get_val());
+    return std::make_unique<NumberExpr>(advance().get_val(), token.get_line());
   }
   if (check_type(TokenType::STRING)) {
-    return std::make_unique<StringExpr>(advance().get_val());
+    return std::make_unique<StringExpr>(advance().get_val(), token.get_line());
   }
   if (check_type(TokenType::IDENT)) {
-    return std::make_unique<VarExpr>(advance().get_val());
+    return std::make_unique<VarExpr>(advance().get_val(), token.get_line());
   }
   if (check_type(TokenType::LPAREN)) {
     advance(); // eat "("
@@ -108,7 +116,7 @@ ExprPtr Parser::parse_factor() {
     return inner;
   }
 
-  throw std::runtime_error("expected an expression");
+  throw CompilerException(token.get_line(), "expected an expression");
 }
 
 StmtPtr Parser::parse_assign(AssignStmt::AssignType type) {
@@ -120,7 +128,8 @@ StmtPtr Parser::parse_assign(AssignStmt::AssignType type) {
 
   expect_type(TokenType::SEMICOLON, "missing semicolon");
 
-  return std::make_unique<AssignStmt>(ident.get_val(), std::move(expr), type);
+  return std::make_unique<AssignStmt>(ident.get_val(), std::move(expr), type,
+                                      ident.get_line());
 }
 
 StmtPtr Parser::parse_loop() {
@@ -135,7 +144,8 @@ StmtPtr Parser::parse_loop() {
 
   std::vector<StmtPtr> body = parse_program();
 
-  return std::make_unique<LoopStmt>(std::move(cond), std::move(body));
+  return std::make_unique<LoopStmt>(std::move(cond), std::move(body),
+                                    cond->line_number);
 }
 
 StmtPtr Parser::parse_if() {
@@ -151,7 +161,8 @@ StmtPtr Parser::parse_if() {
 
   std::vector<StmtPtr> body = parse_program();
 
-  return std::make_unique<IfStmt>(std::move(cond), std::move(body));
+  return std::make_unique<IfStmt>(std::move(cond), std::move(body),
+                                  cond->line_number);
 }
 
 StmtPtr Parser::parse_print_str() {
@@ -163,7 +174,7 @@ StmtPtr Parser::parse_print_str() {
   expect_type(TokenType::RPAREN, "print_str statement not closed");
   expect_type(TokenType::SEMICOLON, "missing semicolon");
 
-  return std::make_unique<PrintStrStmt>(std::move(target));
+  return std::make_unique<PrintStrStmt>(std::move(target), target->line_number);
 }
 
 StmtPtr Parser::parse_print_val() {
@@ -175,7 +186,7 @@ StmtPtr Parser::parse_print_val() {
   expect_type(TokenType::RPAREN, "print_val statement not closed");
   expect_type(TokenType::SEMICOLON, "missing semicolon");
 
-  return std::make_unique<PrintValStmt>(std::move(target));
+  return std::make_unique<PrintValStmt>(std::move(target), target->line_number);
 }
 
 Parser::Parser(std::vector<Token> stream)
@@ -218,7 +229,7 @@ std::vector<StmtPtr> Parser::parse_program() {
       advance();
       return program;
     default:
-      throw std::runtime_error("Not implemented");
+      throw CompilerException(curr.get_line(), "token not implemented");
     }
   }
 

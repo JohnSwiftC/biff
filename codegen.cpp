@@ -1,5 +1,6 @@
 #include "codegen.h"
 #include "ast.h"
+#include "compexcept.h"
 #include "compiler.h"
 
 #include <ostream>
@@ -23,7 +24,8 @@
 // handled in all of these cases.
 EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
   if (expr->get_type() == ExprType::STRING) {
-    throw std::runtime_error("illegal string literal in compound expression");
+    throw CompilerException(expr->line_number,
+                            "illegal string literal in compound expression");
   }
 
   if (expr->get_type() == ExprType::NUMBER) {
@@ -46,7 +48,8 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
   }
 
   if (expr->get_type() != ExprType::BINARY) {
-    throw std::runtime_error("illegal expression tree configuration");
+    throw CompilerException(expr->line_number,
+                            "illegal expression tree configuration");
   }
 
   BinaryExpr *bin_expr = static_cast<BinaryExpr *>(expr);
@@ -100,8 +103,9 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
       return EvalResult{EvalType::CONST, left.val <= right.val};
     }
 
-    throw std::runtime_error("unaccounted operator in const eval: " +
-                             bin_expr->op);
+    throw CompilerException(bin_expr->line_number,
+                            "unaccounted operator in const eval: " +
+                                bin_expr->op);
   }
 
   // At least one side lives on the tape. Get the left operand into
@@ -173,7 +177,8 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
       *out << "ADD: " << acc << ", " << dump << '\n';
       *out << "MOV: " << dump << ", 0\n";
     } else {
-      throw std::runtime_error("unaccounted operator in eval: " + bin_expr->op);
+      throw CompilerException(bin_expr->line_number,
+                              "unaccounted operator in eval: " + bin_expr->op);
     }
   } else {
     if (bin_expr->op == "+") {
@@ -219,7 +224,8 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
       *out << "ADD: " << acc << ", " << dump << '\n';
       *out << "MOV: " << dump << ", " << "0\n";
     } else {
-      throw std::runtime_error("unaccounted operator in eval: " + bin_expr->op);
+      throw CompilerException(bin_expr->line_number,
+                              "unaccounted operator in eval: " + bin_expr->op);
     }
   }
 
@@ -356,7 +362,8 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
   case AssignType::SET: {
 
     if (val->get_type() == ExprType::STRING) {
-      throw std::runtime_error(
+      throw CompilerException(
+          val->line_number,
           "attempted to redfine variable with a string literal: " + name);
     }
 
@@ -441,7 +448,8 @@ void LoopStmt::generate(std::ostream *out, Compiler *compiler) {
     return;
   }
 
-  throw std::runtime_error(
+  throw CompilerException(
+      cond->line_number,
       "loop conditions can only be number literals or single variables");
 }
 
@@ -449,7 +457,8 @@ void IfStmt::generate(std::ostream *out, Compiler *compiler) {
   ExprType type = cond->get_type();
 
   if (type == ExprType::STRING) {
-    throw std::runtime_error(
+    throw CompilerException(
+        cond->line_number,
         "string literals cannot be evaluated as a condition");
   }
 
@@ -500,15 +509,17 @@ void IfStmt::generate(std::ostream *out, Compiler *compiler) {
 void PrintStrStmt::generate(std::ostream *out, Compiler *compiler) {
 
   if (target->get_type() == ExprType::STRING) {
-    throw std::runtime_error("can't use string literals with print_str. "
-                             "this is due to copying that "
-                             "would occur if this was allowed. assign a "
-                             "variable to the string to "
-                             "print it.");
+    throw CompilerException(target->line_number,
+                            "can't use string literals with print_str. "
+                            "this is due to copying that "
+                            "would occur if this was allowed. assign a "
+                            "variable to the string to "
+                            "print it.");
   }
 
   if (target->get_type() != ExprType::VAR) {
-    throw std::runtime_error(
+    throw CompilerException(
+        target->line_number,
         "print_str can only take a single variable argument!");
   }
 

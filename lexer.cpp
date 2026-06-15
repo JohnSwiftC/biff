@@ -95,6 +95,7 @@ std::ostream &operator<<(std::ostream &out, const Token &in) {
 
 const TokenType &Token::get_type() const { return m_type; }
 const std::string &Token::get_val() const { return m_val; }
+int Token::get_line() const { return m_token_line; }
 
 bool Lexer::is_numeric(std::string_view word) {
   return (word[0] >= 48 && word[0] <= 57);
@@ -167,6 +168,7 @@ TokenType Lexer::parse_word(std::string_view word) {
 }
 
 void Lexer::feed(std::string line) {
+  line_count++;
   std::size_t i = 0;
   while (i < line.length()) {
     if (std::isspace(static_cast<unsigned char>(line[i]))) {
@@ -198,7 +200,7 @@ void Lexer::feed(std::string line) {
     }
 
     TokenType type{parse_word(word)};
-    m_token_stream.emplace_back(type, std::move(word));
+    m_token_stream.emplace_back(type, std::move(word), line_count);
   }
 }
 

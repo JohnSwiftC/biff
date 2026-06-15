@@ -40,19 +40,23 @@ class Token {
 private:
   TokenType m_type;
   std::string m_val;
+  int m_token_line;
 
   friend std::ostream &operator<<(std::ostream &out, const Token &in);
 
 public:
-  Token(TokenType type, std::string val) : m_type{type}, m_val{val} {}
+  Token(TokenType type, std::string val, int token_line)
+      : m_type{type}, m_val{val}, m_token_line{token_line} {}
 
   const TokenType &get_type() const;
   const std::string &get_val() const;
+  int get_line() const;
 };
 
 class Lexer {
 private:
   std::vector<Token> m_token_stream;
+  int line_count{};
 
   bool is_numeric(std::string_view word);
   static bool is_punct(char c);

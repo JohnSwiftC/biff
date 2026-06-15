@@ -2,20 +2,28 @@
 
 #include <iostream>
 
-VarExpr::VarExpr(std::string name) : name{std::move(name)} {}
+Expr::Expr(int line_number) : line_number{line_number} {}
+Stmt::Stmt(int line_number) : line_number{line_number} {}
+
+VarExpr::VarExpr(std::string name, int line_number)
+    : Expr(line_number), name{std::move(name)} {}
 void VarExpr::display() const { std::cout << "VarExpr (" << name << ")"; }
 ExprType VarExpr::get_type() const { return ExprType::VAR; }
 
-NumberExpr::NumberExpr(std::string val) : val{std::move(val)} {}
+NumberExpr::NumberExpr(std::string val, int line_number)
+    : Expr(line_number), val{std::move(val)} {}
 void NumberExpr::display() const { std::cout << "NumberExpr (" << val << ")"; }
 ExprType NumberExpr::get_type() const { return ExprType::NUMBER; }
 
-StringExpr::StringExpr(std::string val) : val{val} {}
+StringExpr::StringExpr(std::string val, int line_number)
+    : Expr(line_number), val{val} {}
 void StringExpr::display() const { std::cout << "StringExpr (" << val << ")"; }
 ExprType StringExpr::get_type() const { return ExprType::STRING; }
 
-BinaryExpr::BinaryExpr(std::string op, ExprPtr left, ExprPtr right)
-    : op{std::move(op)}, left{std::move(left)}, right{std::move(right)} {}
+BinaryExpr::BinaryExpr(std::string op, ExprPtr left, ExprPtr right,
+                       int line_number)
+    : Expr(line_number), op{std::move(op)}, left{std::move(left)},
+      right{std::move(right)} {}
 void BinaryExpr::display() const {
   if (left) {
     std::cout << '(';
@@ -31,8 +39,8 @@ void BinaryExpr::display() const {
 }
 ExprType BinaryExpr::get_type() const { return ExprType::BINARY; }
 
-UnaryExpr::UnaryExpr(std::string op, ExprPtr operand)
-    : op{std::move(op)}, operand{std::move(operand)} {}
+UnaryExpr::UnaryExpr(std::string op, ExprPtr operand, int line_number)
+    : Expr(line_number), op{std::move(op)}, operand{std::move(operand)} {}
 void UnaryExpr::display() const {
   std::cout << '(' << op;
   operand->display();
@@ -40,16 +48,18 @@ void UnaryExpr::display() const {
 }
 ExprType UnaryExpr::get_type() const { return ExprType::UNARY; }
 
-AssignStmt::AssignStmt(std::string name, ExprPtr val, AssignType type)
-    : name{std::move(name)}, val{std::move(val)}, type{type} {}
+AssignStmt::AssignStmt(std::string name, ExprPtr val, AssignType type,
+                       int line_number)
+    : Stmt(line_number), name{std::move(name)}, val{std::move(val)},
+      type{type} {}
 void AssignStmt::display() const {
   std::cout << "AssignStmt (" << name << " ";
   val->display();
   std::cout << ")";
 }
 
-LoopStmt::LoopStmt(ExprPtr cond, std::vector<StmtPtr> body)
-    : cond{std::move(cond)}, body{std::move(body)} {}
+LoopStmt::LoopStmt(ExprPtr cond, std::vector<StmtPtr> body, int line_number)
+    : Stmt(line_number), cond{std::move(cond)}, body{std::move(body)} {}
 void LoopStmt::display() const {
   std::cout << "LoopStmt (";
   cond->display();
@@ -62,8 +72,8 @@ void LoopStmt::display() const {
   std::cout << ")";
 }
 
-IfStmt::IfStmt(ExprPtr cond, std::vector<StmtPtr> body)
-    : cond{std::move(cond)}, body{std::move(body)} {}
+IfStmt::IfStmt(ExprPtr cond, std::vector<StmtPtr> body, int line_number)
+    : Stmt(line_number), cond{std::move(cond)}, body{std::move(body)} {}
 void IfStmt::display() const {
   std::cout << "IfStmt (";
   cond->display();
@@ -76,7 +86,8 @@ void IfStmt::display() const {
   std::cout << ")";
 }
 
-PrintStrStmt::PrintStrStmt(ExprPtr target) : target{std::move(target)} {}
+PrintStrStmt::PrintStrStmt(ExprPtr target, int line_number)
+    : Stmt(line_number), target{std::move(target)} {}
 
 void PrintStrStmt::display() const {
   std::cout << "PrintStrStmt (";
@@ -84,7 +95,8 @@ void PrintStrStmt::display() const {
   std::cout << ")";
 }
 
-PrintValStmt::PrintValStmt(ExprPtr target) : target{std::move(target)} {}
+PrintValStmt::PrintValStmt(ExprPtr target, int line_number)
+    : Stmt(line_number), target{std::move(target)} {}
 
 void PrintValStmt::display() const {
   std::cout << "PrintValStmt (";
