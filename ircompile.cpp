@@ -241,6 +241,26 @@ void compile_line(IRFileWriter &w, const std::string &raw) {
   } else if (name == "set_virtual_base") {
     require(args, 1, "set_virtual_base");
     w.set_virtual_base(parse_addr(args[0]));
+  } else if (name == "ra") {
+    require(args, 3, "ra");
+    w.ra(parse_addr(args[0]), parse_addr(args[1]), parse_addr(args[2]));
+  } else if (name == "ra_const") {
+    require(args, 3, "ra_const");
+    w.ra_const(parse_addr(args[0]), parse_byte(args[1]), parse_byte(args[2]));
+  } else if (name == "sav") {
+    w.sav(parse_addr(args[0]), parse_addr(args[1]), parse_addr(args[2]));
+  } else if (name == "sav_index_const") {
+    require(args, 3, "sav_index_const");
+    w.sav_index_const(parse_addr(args[0]), parse_byte(args[1]),
+                      parse_addr(args[2]));
+  } else if (name == "sav_val_const") {
+    require(args, 3, "sav_val_const");
+    w.sav_val_const(parse_addr(args[0]), parse_addr(args[1]),
+                    parse_byte(args[2]));
+  } else if (name == "sav_full_const") {
+    require(args, 3, "sav_full_const");
+    w.sav_full_const(parse_addr(args[0]), parse_byte(args[1]),
+                     parse_byte(args[2]));
   } else {
     throw std::runtime_error("unknown instruction: '" + name + "'");
   }
