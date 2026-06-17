@@ -157,14 +157,16 @@ public:
 
   // Reads the element at index in the array
   // starting at dest, and copies the result into dest.
-  void read_array(size_t base, unsigned char index, size_t dest);
+  void ra(size_t base, size_t index, size_t dest);
+  void ra_const(size_t base, unsigned char index, size_t dest);
 
   // sets the value in the array starting at base at
-  // index to the value stored in addr
-  void set_array_val(size_t base, unsigned char index, size_t addr);
-
-  // Const version of set_array_val
-  void set_array_val_const(size_t base, unsigned char index, unsigned char val);
+  // index to the value stored in addr, or to a const value.
+  // includes instructions for when the index may also be const
+  void sav(size_t base, size_t index, size_t addr);
+  void sav_index_const(size_t base, unsigned char index, size_t addr);
+  void sav_val_const(size_t base, size_t index, unsigned char val);
+  void sav_full_const(size_t base, unsigned char index, unsigned char val);
 };
 
 #endif
