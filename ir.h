@@ -154,7 +154,6 @@ public:
   // array. its of course assumed that the
   // compiler will set this into a free region
   // where the cells are already zeroed.
-  void create_array(size_t dest, size_t size);
 
   // Reads the element at index in the array
   // starting at dest, and copies the result into dest.
