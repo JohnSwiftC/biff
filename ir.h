@@ -146,6 +146,26 @@ public:
   // essentially, this gives you a virtual address space
   // by incrementing what value the irwriter believes to be addr 0
   void set_virtual_base(size_t base);
+
+  // Uses a very clever esolang algo
+  // to create a dynamic array. note, this uses
+  // size + 4 bytes when creating the array,
+  // and does not init any elements of the
+  // array. its of course assumed that the
+  // compiler will set this into a free region
+  // where the cells are already zeroed.
+  void create_array(size_t dest, size_t size);
+
+  // Reads the element at index in the array
+  // starting at dest, and copies the result into dest.
+  void read_array(size_t base, unsigned char index, size_t dest);
+
+  // sets the value in the array starting at base at
+  // index to the value stored in addr
+  void set_array_val(size_t base, unsigned char index, size_t addr);
+
+  // Const version of set_array_val
+  void set_array_val_const(size_t base, unsigned char index, unsigned char val);
 };
 
 #endif
