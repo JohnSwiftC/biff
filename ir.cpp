@@ -652,3 +652,113 @@ void IRFileWriter::set_virtual_base(size_t base) {
   shift(m_base, base);
   m_base = base;
 }
+
+// Very clever esolangs wiki algorithm. Bunch of manipulation,
+// reads the value at index in an array starting at base and sets
+// the value at that index into dest
+void IRFileWriter::ra(size_t base, size_t index, size_t dest) {
+  mov(base + 1, 0);
+  mov(base + 2, 0);
+
+  add(base + 1, index);
+  add(base + 2, index);
+
+  mov(base + 3, 0);
+
+  shift(0, base);
+
+  m_out << ">[>>>[-<<<<+>>>>]<<[->+<]<[->+<]>-]>>>[-<+<<+>>>]<<<[->>>+<<<]>[[-<"
+           "+>]>[-<+>]<<<<[->>>>+<<<<]>>-]<<";
+
+  shift(base, 0);
+  mov(dest, 0);
+  add(dest, base + 3);
+  mov(base + 3, 0);
+}
+
+void IRFileWriter::ra_const(size_t base, unsigned char index, size_t dest) {
+  mov(base + 1, index);
+  mov(base + 2, index);
+
+  mov(base + 3, 0);
+
+  shift(0, base);
+
+  m_out << ">[>>>[-<<<<+>>>>]<<[->+<]<[->+<]>-]>>>[-<+<<+>>>]<<<[->>>+<<<]>[[-<"
+           "+>]>[-<+>]<<<<[->>>>+<<<<]>>-]<<";
+
+  shift(base, 0);
+  mov(dest, 0);
+  add(dest, base + 3);
+  mov(base + 3, 0);
+}
+
+void IRFileWriter::sav(size_t base, size_t index, size_t addr) {
+  mov(base + 1, 0);
+  mov(base + 2, 0);
+
+  add(base + 1, index);
+  add(base + 2, index);
+
+  mov(base + 3, 0);
+  add(base + 3, addr);
+
+  shift(0, base);
+
+  m_out << ">[>>>[-<<<<+>>>>]<[->+<]<[->+<]<[->+<]>-]>>>[-]<[->+<]<[[-<+>]<<<[-"
+           ">>>>+<<<<]>>-]<<";
+
+  shift(base, 0);
+  mov(base + 3, 0);
+}
+
+void IRFileWriter::sav_index_const(size_t base, unsigned char index,
+                                   size_t addr) {
+
+  mov(base + 1, index);
+  mov(base + 2, index);
+
+  mov(base + 3, 0);
+  add(base + 3, addr);
+
+  shift(0, base);
+
+  m_out << ">[>>>[-<<<<+>>>>]<[->+<]<[->+<]<[->+<]>-]>>>[-]<[->+<]<[[-<+>]<<<[-"
+           ">>>>+<<<<]>>-]<<";
+
+  shift(base, 0);
+  mov(base + 3, 0);
+}
+
+void IRFileWriter::sav_val_const(size_t base, size_t index, unsigned char val) {
+  mov(base + 1, 0);
+  mov(base + 2, 0);
+
+  add(base + 1, index);
+  add(base + 2, index);
+
+  mov(base + 3, val);
+
+  shift(0, base);
+
+  m_out << ">[>>>[-<<<<+>>>>]<[->+<]<[->+<]<[->+<]>-]>>>[-]<[->+<]<[[-<+>]<<<[-"
+           ">>>>+<<<<]>>-]<<";
+
+  shift(base, 0);
+  mov(base + 3, 0);
+}
+
+void IRFileWriter::sav_full_const(size_t base, unsigned char index,
+                                  unsigned char val) {
+  mov(base + 1, index);
+  mov(base + 2, index);
+  mov(base + 3, val);
+
+  shift(0, base);
+
+  m_out << ">[>>>[-<<<<+>>>>]<[->+<]<[->+<]<[->+<]>-]>>>[-]<[->+<]<[[-<+>]<<<[-"
+           ">>>>+<<<<]>>-]<<";
+
+  shift(base, 0);
+  mov(base + 3, 0);
+}
