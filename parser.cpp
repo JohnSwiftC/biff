@@ -132,6 +132,10 @@ StmtPtr Parser::parse_assign(AssignStmt::AssignType type) {
                                       ident.get_line());
 }
 
+StmtPtr Parser::parse_array_creation() {
+  throw CompilerException(0, "undefined");
+}
+
 StmtPtr Parser::parse_loop() {
   expect_type(TokenType::LOOP, "failed loop token");
   expect_type(TokenType::LPAREN, "loop conditions must be in parentheses");

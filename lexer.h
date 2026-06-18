@@ -32,6 +32,8 @@ enum class TokenType {
   RBRACE,
   LPAREN,
   RPAREN,
+  LBRACKET,
+  RBRACKET,
   PRINT_STR,
   PRINT_VAL,
 };

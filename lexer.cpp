@@ -82,6 +82,12 @@ std::ostream &operator<<(std::ostream &out, const Token &in) {
   case TokenType::RPAREN:
     out << "RPAREN (" << in.m_val << ')';
     break;
+  case TokenType::LBRACKET:
+    out << "LBRACKET (" << in.m_val << ')';
+    break;
+  case TokenType::RBRACKET:
+    out << "RBRACKET (" << in.m_val << ')';
+    break;
   case TokenType::PRINT_STR:
     out << "PRINT_STR";
     break;
@@ -102,7 +108,8 @@ bool Lexer::is_numeric(std::string_view word) {
 }
 
 bool Lexer::is_punct(char c) {
-  return c == ';' || c == '{' || c == '}' || c == '(' || c == ')' || c == '!';
+  return c == ';' || c == '{' || c == '}' || c == '(' || c == ')' || c == '[' ||
+         c == ']' || c == '!';
 }
 
 TokenType Lexer::parse_word(std::string_view word) {
@@ -120,6 +127,10 @@ TokenType Lexer::parse_word(std::string_view word) {
     return TokenType::LPAREN;
   } else if (word == ")") {
     return TokenType::RPAREN;
+  } else if (word == "[") {
+    return TokenType::LBRACKET;
+  } else if (word == "]") {
+    return TokenType::RBRACKET;
   } else if (word == "=") {
     return TokenType::EQUALS;
   } else if (word == "==") {

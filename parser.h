@@ -33,6 +33,7 @@ private:
   ExprPtr parse_factor();
 
   StmtPtr parse_assign(AssignStmt::AssignType type);
+  StmtPtr parse_array_creation();
   StmtPtr parse_loop();
   StmtPtr parse_if();
   StmtPtr parse_print_str();
