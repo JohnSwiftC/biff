@@ -10,6 +10,7 @@ class Compiler;
 
 enum class ExprType {
   VAR,
+  ARRAYVAR,
   NUMBER,
   STRING,
   BINARY,
@@ -43,6 +44,16 @@ struct VarExpr : Expr {
   std::string name;
 
   VarExpr(std::string val, int line_number);
+
+  void display() const override;
+  ExprType get_type() const override;
+};
+
+struct ArrayVarExpr : Expr {
+  std::string name;
+  ExprPtr index_expr;
+
+  ArrayVarExpr(std::string name, ExprPtr index_expr, int line_number);
 
   void display() const override;
   ExprType get_type() const override;
@@ -145,7 +156,7 @@ struct CreateArrayStmt : Stmt {
   std::string name;
   ExprPtr size_expr;
 
-  CreateArrayStmt(std::string name, ExprPtr size_expr);
+  CreateArrayStmt(std::string name, ExprPtr size_expr, int line_number);
 
   void display() const override;
   void generate(std::ostream *out, Compiler *compiler) override;
@@ -154,8 +165,10 @@ struct CreateArrayStmt : Stmt {
 struct AssignArrayStmt : Stmt {
   std::string name;
   ExprPtr index_expr;
+  ExprPtr target;
 
-  AssignArrayStmt(std::string name, ExprPtr index_expr);
+  AssignArrayStmt(std::string name, ExprPtr index_expr, ExprPtr target,
+                  int line_number);
 
   void display() const override;
   void generate(std::ostream *out, Compiler *compiler) override;

@@ -10,6 +10,17 @@ VarExpr::VarExpr(std::string name, int line_number)
 void VarExpr::display() const { std::cout << "VarExpr (" << name << ")"; }
 ExprType VarExpr::get_type() const { return ExprType::VAR; }
 
+ArrayVarExpr::ArrayVarExpr(std::string name, ExprPtr index_expr,
+                           int line_number)
+    : Expr(line_number), name{std::move(name)},
+      index_expr{std::move(index_expr)} {}
+void ArrayVarExpr::display() const {
+  std::cout << "ArrayVarExpr (" << name << ": ";
+  index_expr->display();
+  std::cout << ")";
+}
+ExprType ArrayVarExpr::get_type() const { return ExprType::ARRAYVAR; }
+
 NumberExpr::NumberExpr(std::string val, int line_number)
     : Expr(line_number), val{std::move(val)} {}
 void NumberExpr::display() const { std::cout << "NumberExpr (" << val << ")"; }
@@ -100,6 +111,28 @@ PrintValStmt::PrintValStmt(ExprPtr target, int line_number)
 
 void PrintValStmt::display() const {
   std::cout << "PrintValStmt (";
+  target->display();
+  std::cout << ")";
+}
+
+CreateArrayStmt::CreateArrayStmt(std::string name, ExprPtr size_expr,
+                                 int line_number)
+    : Stmt(line_number), name{std::move(name)},
+      size_expr{std::move(size_expr)} {}
+void CreateArrayStmt::display() const {
+  std::cout << "CreateArrayStmt (";
+  size_expr->display();
+  std::cout << ")";
+}
+
+AssignArrayStmt::AssignArrayStmt(std::string name, ExprPtr index_expr,
+                                 ExprPtr target, int line_number)
+    : Stmt(line_number), name{std::move(name)},
+      index_expr{std::move(index_expr)}, target{std::move(target)} {}
+void AssignArrayStmt::display() const {
+  std::cout << "AssignArrayStmt (";
+  index_expr->display();
+  std::cout << " ";
   target->display();
   std::cout << ")";
 }
