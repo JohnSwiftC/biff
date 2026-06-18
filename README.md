@@ -100,7 +100,9 @@ Biff has two built-in functions, `print_str` and `print_val`. `print_str` takes 
 
 Examples can be found in /examples, have at it!
 
-## Compiling
+## Compiling and Tools
+
+> The entire project can be built with cmake.
 
 Biff's compiler pipeline is split into three different components: `biffc`, `ircompile`, and `bfopt`.
 
@@ -109,6 +111,8 @@ Biff's compiler pipeline is split into three different components: `biffc`, `irc
 `./biffc program.biff | ./ircompile | ./bfopt - program.bf`
 
 Note the leading `-` in `bfopt`'s args. Without this, bfopt (and every other component as well), assumes it should emit output to stdout. '-' and a file name explicitly tells it to emit to a new file.
+
+There is also an included interpreter implementation which is also built in the cmake file for use.
 
 > This is skipping over how the IR language is implemented, as its implementation is much simpler than the compiler. I'll write it later.
 
