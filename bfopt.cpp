@@ -8,11 +8,22 @@
 
 namespace {
 
-void flush(std::ostream &out, long &net) {
-  if (net > 0) {
-    out << std::string(static_cast<size_t>(net), '>');
-  } else if (net < 0) {
-    out << std::string(static_cast<size_t>(-net), '<');
+constexpr int kLineWidth = 30;
+
+void emit(std::ostream &out, char c, int &col) {
+  out.put(c);
+  if (c == '\n') {
+    col = 0;
+  } else if (++col >= kLineWidth) {
+    out.put('\n');
+    col = 0;
+  }
+}
+
+void flush(std::ostream &out, long &net, int &col) {
+  char c = net > 0 ? '>' : '<';
+  for (long n = net > 0 ? net : -net; n > 0; --n) {
+    emit(out, c, col);
   }
   net = 0;
 }
@@ -44,6 +55,7 @@ int main(int argc, char **argv) {
   }
 
   long net = 0;
+  int col = 0;
   char c;
   while (in->get(c)) {
     if (c == '>') {
@@ -51,11 +63,11 @@ int main(int argc, char **argv) {
     } else if (c == '<') {
       --net;
     } else {
-      flush(*out, net);
-      out->put(c);
+      flush(*out, net, col);
+      emit(*out, c, col);
     }
   }
-  flush(*out, net);
+  flush(*out, net, col);
 
   return 0;
 }
