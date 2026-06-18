@@ -43,6 +43,33 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
     return EvalResult{EvalType::ADDRESS, addr};
   }
 
+  if (expr->get_type() == ExprType::ARRAYVAR) {
+    ArrayVarExpr *array_var_expr = static_cast<ArrayVarExpr *>(expr);
+
+    Scope &scope = compiler->get_scope();
+    size_t base{compiler->get_var(array_var_expr->name)};
+    size_t dest{scope.get_next_free()};
+
+    EvalResult index = eval(out, compiler, array_var_expr->index_expr.get());
+    if (index.type == EvalType::CONST) {
+      *out << "RA_CONST: " << base << ", " << index.val << ", " << dest << '\n';
+      scope.bump_next_free(1);
+    } else if (index.type == EvalType::TEMP) {
+      if (index.val == dest) {
+        *out << "RA: " << base << ", " << index.val << ", " << dest << '\n';
+      } else {
+        *out << "RA: " << base << ", " << index.val << ", " << dest << '\n';
+        *out << "MOV: " << index.val << ", 0\n";
+        scope.set_next_free(dest + 1);
+      }
+    } else if (index.type == EvalType::ADDRESS) {
+      *out << "RA: " << base << ", " << index.val << ", " << dest << '\n';
+      scope.bump_next_free(1);
+    }
+
+    return EvalResult{EvalType::TEMP, dest};
+  }
+
   if (expr->get_type() == ExprType::UNARY) {
     return eval_unary(out, compiler, static_cast<UnaryExpr *>(expr));
   }
@@ -564,4 +591,12 @@ void PrintValStmt::generate(std::ostream *out, Compiler *compiler) {
     break;
   }
   }
+}
+
+void CreateArrayStmt::generate(std::ostream *out, Compiler *compiler) {
+  throw CompilerException(line_number, "CreateArrayStmt not implemented");
+}
+
+void AssignArrayStmt::generate(std::ostream *out, Compiler *compiler) {
+  throw CompilerException(line_number, "AssignArrayStmt not implemented");
 }
