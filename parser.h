@@ -32,7 +32,7 @@ private:
   ExprPtr parse_unary();
   ExprPtr parse_factor();
 
-  StmtPtr parse_assign(AssignStmt::AssignType type);
+  StmtPtr parse_assign(AssignType type);
   StmtPtr parse_array_creation(Token &ident);
   StmtPtr parse_array_assignment(Token &ident);
   StmtPtr parse_loop();

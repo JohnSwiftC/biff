@@ -126,13 +126,13 @@ void CreateArrayStmt::display() const {
 }
 
 AssignArrayStmt::AssignArrayStmt(std::string name, ExprPtr index_expr,
-                                 ExprPtr target, int line_number)
+                                 ExprPtr target_expr, int line_number)
     : Stmt(line_number), name{std::move(name)},
-      index_expr{std::move(index_expr)}, target{std::move(target)} {}
+      index_expr{std::move(index_expr)}, target_expr{std::move(target_expr)} {}
 void AssignArrayStmt::display() const {
   std::cout << "AssignArrayStmt (";
   index_expr->display();
   std::cout << " ";
-  target->display();
+  target_expr->display();
   std::cout << ")";
 }

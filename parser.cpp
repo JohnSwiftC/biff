@@ -127,7 +127,7 @@ ExprPtr Parser::parse_factor() {
   throw CompilerException(token.get_line(), "expected an expression");
 }
 
-StmtPtr Parser::parse_assign(AssignStmt::AssignType type) {
+StmtPtr Parser::parse_assign(AssignType type) {
   Token &ident = expect_type(TokenType::IDENT, "Can't assign non ident");
 
   if (check_type(TokenType::LBRACKET)) {
@@ -248,11 +248,11 @@ std::vector<StmtPtr> Parser::parse_program() {
 
     case TokenType::LET:
       advance();
-      program.push_back(parse_assign(AssignStmt::AssignType::NEW));
+      program.push_back(parse_assign(AssignType::NEW));
       break;
 
     case TokenType::IDENT:
-      program.push_back(parse_assign(AssignStmt::AssignType::SET));
+      program.push_back(parse_assign(AssignType::SET));
       break;
 
     case TokenType::LOOP:

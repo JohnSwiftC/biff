@@ -98,11 +98,12 @@ struct UnaryExpr : Expr {
   ExprType get_type() const override;
 };
 
+enum class AssignType {
+  NEW,
+  SET,
+};
+
 struct AssignStmt : Stmt {
-  enum class AssignType {
-    NEW,
-    SET,
-  };
 
   std::string name;
   ExprPtr val;
@@ -155,6 +156,7 @@ struct PrintValStmt : Stmt {
 struct CreateArrayStmt : Stmt {
   std::string name;
   ExprPtr size_expr;
+  AssignType type;
 
   CreateArrayStmt(std::string name, ExprPtr size_expr, int line_number);
 
@@ -165,9 +167,9 @@ struct CreateArrayStmt : Stmt {
 struct AssignArrayStmt : Stmt {
   std::string name;
   ExprPtr index_expr;
-  ExprPtr target;
+  ExprPtr target_expr;
 
-  AssignArrayStmt(std::string name, ExprPtr index_expr, ExprPtr target,
+  AssignArrayStmt(std::string name, ExprPtr index_expr, ExprPtr target_expr,
                   int line_number);
 
   void display() const override;

@@ -594,9 +594,103 @@ void PrintValStmt::generate(std::ostream *out, Compiler *compiler) {
 }
 
 void CreateArrayStmt::generate(std::ostream *out, Compiler *compiler) {
-  throw CompilerException(line_number, "CreateArrayStmt not implemented");
+  if (type == AssignType::SET) {
+    throw CompilerException(line_number,
+                            "arrays cannot be redefined as a new array");
+  }
+
+  // top level scope
+  // i need to write down how the scope works
+  // lmfao
+  Scope &scope = compiler->get_scope();
+
+  if (scope.contains_var(name)) {
+    throw CompilerException(
+        line_number, "attempted to redefine array in its top level scope");
+  }
+
+  size_t base{scope.get_next_free()};
+  scope.set_var_addr(name, base);
+
+  EvalResult size = eval(out, compiler, size_expr.get());
+
+  if (size.type != EvalType::CONST) {
+    throw CompilerException(line_number,
+                            "array sizes must be evaluated at compile time "
+                            "(only constexprs can be used for array sizes)");
+  }
+
+  // Arrays require size + 4 bytes to function
+  // (see the IR implementation for further info on why)
+  scope.bump_next_free(size.val + 4);
 }
 
 void AssignArrayStmt::generate(std::ostream *out, Compiler *compiler) {
-  throw CompilerException(line_number, "AssignArrayStmt not implemented");
+  size_t base{compiler->get_var(name)};
+  Scope &scope = compiler->get_scope();
+
+  size_t snapshot{scope.get_next_free()};
+
+  // Address of the index and targets
+  // for the non-const branches
+  size_t index_addr{};
+  size_t target_addr{};
+
+  EvalResult index = eval(out, compiler, index_expr.get());
+
+  if (index.type == EvalType::TEMP) {
+    if (index.val != snapshot) {
+      *out << "MOV: " << snapshot << ", 0\n";
+      *out << "ADD: " << snapshot << ", " << index.val << '\n';
+      *out << "MOV: " << index.val << ", 0\n";
+    }
+
+    scope.set_next_free(snapshot + 1);
+    index_addr = snapshot;
+  } else if (index.type == EvalType::ADDRESS) {
+    index_addr = index.val;
+  }
+
+  EvalResult target = eval(out, compiler, target_expr.get());
+
+  if (target.type == EvalType::TEMP) {
+    if (target.val != snapshot + 1) {
+      *out << "MOV: " << snapshot + 1 << ", 0\n";
+      *out << "ADD: " << snapshot + 1 << ", " << target.val << '\n';
+      *out << "MOV: " << target.val << ", 0\n";
+    }
+
+    scope.set_next_free(snapshot + 2);
+    target_addr = snapshot + 1;
+  } else if (target.type == EvalType::ADDRESS) {
+    target_addr = target.val;
+  }
+
+  if (index.type == EvalType::CONST && target.type == EvalType::CONST) {
+    *out << "SAV_FULL_CONST: " << base << ", " << index.val << ", "
+         << target.val << '\n';
+    return;
+  }
+
+  if (index.type != EvalType::CONST && target.type == EvalType::CONST) {
+    *out << "SAV_VAL_CONST: " << base << ", " << index_addr << ", "
+         << target.val << '\n';
+  } else if (index.type == EvalType::CONST && target.type != EvalType::CONST) {
+    *out << "SAV_INDEX_CONST: " << base << ", " << index.val << ", "
+         << target_addr << '\n';
+  } else if (index.type != EvalType::CONST && target.type != EvalType::CONST) {
+    *out << "SAV: " << base << ", " << index_addr << ", " << target_addr
+         << '\n';
+  }
+
+  // cleanup
+  if (index.type == EvalType::TEMP) {
+    *out << "MOV: " << index_addr << ", 0\n";
+  }
+
+  if (target.type == EvalType::TEMP) {
+    *out << "MOV: " << target_addr << ", 0\n";
+  }
+
+  scope.set_next_free(snapshot);
 }
