@@ -122,7 +122,15 @@ ExprPtr Parser::parse_factor() {
 StmtPtr Parser::parse_assign(AssignStmt::AssignType type) {
   Token &ident = expect_type(TokenType::IDENT, "Can't assign non ident");
 
+  if (check_type(TokenType::LBRACKET)) {
+    return parse_array_assignment(ident);
+  }
+
   expect_type(TokenType::EQUALS, "No matching equals sign for assignment");
+
+  if (check_type(TokenType::LBRACKET)) {
+    return parse_array_creation(ident);
+  }
 
   ExprPtr expr = parse_expression();
 
@@ -132,8 +140,33 @@ StmtPtr Parser::parse_assign(AssignStmt::AssignType type) {
                                       ident.get_line());
 }
 
-StmtPtr Parser::parse_array_creation() {
-  throw CompilerException(0, "undefined");
+StmtPtr Parser::parse_array_creation(Token &ident) {
+  expect_type(TokenType::LBRACKET,
+              "failing LBRACKET when declaring a new array");
+
+  ExprPtr size_expr = parse_expression();
+
+  expect_type(TokenType::RBRACKET, "no closing RBRACKET on array declaration");
+
+  return std::make_unique<CreateArrayStmt>(
+      ident.get_val(), std::move(size_expr), ident.get_line());
+}
+
+StmtPtr Parser::parse_array_assignment(Token &ident) {
+  expect_type(TokenType::LBRACKET, "failed LBRACKET in index");
+
+  ExprPtr index_expr = parse_expression();
+
+  expect_type(TokenType::RBRACKET, "expected closing bracket on array index");
+  expect_type(TokenType::EQUALS, "expected equals for assignment");
+
+  ExprPtr target = parse_expression();
+
+  expect_type(TokenType::SEMICOLON, "missing semicolon");
+
+  return std::make_unique<AssignArrayStmt>(ident.get_val(),
+                                           std::move(index_expr),
+                                           std::move(target), ident.get_line());
 }
 
 StmtPtr Parser::parse_loop() {
