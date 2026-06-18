@@ -2,6 +2,114 @@
 
 A language that compiles to brainfuck.
 
+# Guide
+
+## Variables and assignment
+
+Variables are declared within their scope with the `let` keyword. Variables can be reassigned with just the identifier.
+
+```rust
+let a = 12;
+a = a + 1;
+```
+
+By default, variables are an unsigned 8 bit integer. Strings are defined in the same fashion, however, strings are immutable once declared.
+
+```rust
+let hello = "Hello, World!";
+hello = "Hi!"; // compiler error
+```
+
+## Arrays
+
+Arrays consist of 8 bit integers as well, and the array's size must be able to be evaluated at compile time. Arrays can then be dynamically accessed.
+
+> Note: a string is *NOT* an array.
+
+```rust
+let my_array = [100]; // an array of size 100
+let my_array_two = [25 * 4]; // also an array of size 100
+
+my_array[1] = 2;
+my_array_two[my_array[1]] = 4;
+```
+
+## Arithmetic and Comparison Operators
+
+Biff supports all of the normal operators you would find in a standard language: `+`, `-`, `*`, `/`, and `%`. Notable behavior exists within the logical operators, however. Operators like `<`, `<=`, `>`, `>=`, `==`, and `!=` will either evaluate to 1 or 0. The unary `!` operator will flip 0 to 1, and any non-zero value to 0. (This is due to control flow, as shown later)
+
+```rust
+let a = 12;
+let b = 1;
+
+let comp = a >= !b;
+let math = (a + b) * (1 + b);
+```
+
+As shown, expressions can also be grouped with parentheses. Also note that these operators must be separated by white-space, with the exceptions being grouping symbols like `(` and `)`, or unary operators, like `!`.
+
+## If Statements
+
+If statements can be evaluated against any expression, including sole variables. Note, when evaluating against a variable alone, an if statement will not modify it (see loops, which DO modify single variable expressions).
+
+If statements fire only once, and only if the expression evaluates to any non-zero value.
+
+```rust
+let a = 2;
+
+if (a > 1) {
+  // do something
+}
+```
+
+## Loops
+
+Loops are very similar to if statements, as they can take any valid expression as an argument. They will execute the loop body until the given expression is 0. A special case exists when a loop operates on a single address expression. In this case, that variable will be modified as part of the loop.
+
+```rust
+loop (100) {
+  // loops 100 times, but have no access to the underlying iteration
+}
+
+let a = 13;
+
+loop(a) {
+  // loops 13, times, however, accessing a will reveal the current
+  // number of remaining iterations.
+}
+
+loop (a * 2) {
+  // loops 26 times. note, however, because a * 2 is more
+  // than a single variable expression, a will not be modified by this loop
+}
+```
+
+## Scoping and Variable Shadowing
+
+If and loop statements both create their own scope. In these statements, outer variables can still be accessed and modified. Declaring a new variable in the body will shadow any outside variables of the same name. Once outside of an if or loop body, variables created within them will no longer be accessible.
+
+## Built-In Functions
+
+Biff has two built-in functions, `print_str` and `print_val`. `print_str` takes a single string argument, and may not be anything besides a single variable argument.
+
+> Note: print_str should only be used with variables that have been defined as a string literal. Anything otherwise is UB and will almost definitely destroy your program.
+
+`print_val` can take any valid expression as an argument, and it will display the value as a string (think itoa).
+
+## Examples
+
+Examples can be found in /examples, have at it!
+
+## Compiling
+
+Biff's compiler pipeline is split into three different components: `biffc`, `ircompile`, and `bfopt`.
+
+`biffc` compiles biff into its matching IR. `ircompile` compiles IR into its matching brainfuck, and `bfopt` optimizes emitted brainfuck to shrink the final size of your program. A typical full build looks something like this.
+
+`./biffc program.biff | ./ircompile | ./bfopt - program.bf`
+
+Note the leading `-` in `bfopt`'s args. Without this, bfopt (and every other component as well), assumes it should emit output to stdout. '-' and a file name explicitly tells it to emit to a new file.
+
 > This is skipping over how the IR language is implemented, as its implementation is much simpler than the compiler. I'll write it later.
 
 # Biff -> IR Overview
