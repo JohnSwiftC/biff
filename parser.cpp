@@ -107,7 +107,15 @@ ExprPtr Parser::parse_factor() {
     return std::make_unique<StringExpr>(advance().get_val(), token.get_line());
   }
   if (check_type(TokenType::IDENT)) {
-    return std::make_unique<VarExpr>(advance().get_val(), token.get_line());
+    std::string name = advance().get_val();
+    if (check_type(TokenType::LBRACKET)) {
+      advance();
+      ExprPtr index_expr = parse_expression();
+      expect_type(TokenType::RBRACKET, "missing closing bracket");
+      return std::make_unique<ArrayVarExpr>(
+          std::move(name), std::move(index_expr), token.get_line());
+    }
+    return std::make_unique<VarExpr>(name, token.get_line());
   }
   if (check_type(TokenType::LPAREN)) {
     advance(); // eat "("
@@ -147,6 +155,7 @@ StmtPtr Parser::parse_array_creation(Token &ident) {
   ExprPtr size_expr = parse_expression();
 
   expect_type(TokenType::RBRACKET, "no closing RBRACKET on array declaration");
+  expect_type(TokenType::SEMICOLON, "missing semicolon");
 
   return std::make_unique<CreateArrayStmt>(
       ident.get_val(), std::move(size_expr), ident.get_line());
@@ -266,7 +275,8 @@ std::vector<StmtPtr> Parser::parse_program() {
       advance();
       return program;
     default:
-      throw CompilerException(curr.get_line(), "token not implemented");
+      throw CompilerException(curr.get_line(),
+                              "token not implemented: " + curr.get_val());
     }
   }
 
