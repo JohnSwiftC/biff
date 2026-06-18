@@ -129,7 +129,7 @@ struct PrintStrStmt : Stmt {
   PrintStrStmt(ExprPtr target, int line_number);
 
   void display() const override;
-  void generate(std::ostream *out, Compiler *compuler) override;
+  void generate(std::ostream *out, Compiler *compiler) override;
 };
 
 struct PrintValStmt : Stmt {
@@ -138,7 +138,27 @@ struct PrintValStmt : Stmt {
   PrintValStmt(ExprPtr target, int line_number);
 
   void display() const override;
-  void generate(std::ostream *out, Compiler *compuler) override;
+  void generate(std::ostream *out, Compiler *compiler) override;
+};
+
+struct CreateArrayStmt : Stmt {
+  std::string name;
+  ExprPtr size_expr;
+
+  CreateArrayStmt(std::string name, ExprPtr size_expr);
+
+  void display() const override;
+  void generate(std::ostream *out, Compiler *compiler) override;
+};
+
+struct AssignArrayStmt : Stmt {
+  std::string name;
+  ExprPtr index_expr;
+
+  AssignArrayStmt(std::string name, ExprPtr index_expr);
+
+  void display() const override;
+  void generate(std::ostream *out, Compiler *compiler) override;
 };
 
 #endif
