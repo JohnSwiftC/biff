@@ -8,6 +8,7 @@
 void run_bf(const std::string &program) {
   size_t len{program.size()};
   size_t ptr{};
+  size_t max_ptr{};
   size_t curr_instr{};
   std::array<unsigned char, 10000> tape{};
 
@@ -30,6 +31,9 @@ void run_bf(const std::string &program) {
     switch (program[curr_instr]) {
     case '>': {
       ptr++;
+      if (ptr > max_ptr) {
+        max_ptr = ptr;
+      }
       curr_instr++;
       break;
     }
@@ -79,10 +83,13 @@ void run_bf(const std::string &program) {
     }
 
     default: {
-      return;
+      curr_instr = len;
+      break;
     }
     }
   }
+
+  std::cerr << "\ncells used: " << max_ptr + 1 << "\n";
 }
 
 int main(int argc, char *argv[]) {
