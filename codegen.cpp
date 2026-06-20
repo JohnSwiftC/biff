@@ -430,54 +430,52 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
 }
 
 void LoopStmt::generate(std::ostream *out, Compiler *compiler) {
-  ExprType type = cond->get_type();
+  Scope &scope = compiler->get_scope();
+  size_t snapshot{scope.get_next_free()};
+  EvalResult result = eval(out, compiler, cond.get());
+  size_t dest{};
 
-  if (type == ExprType::VAR) {
-    VarExpr *var_expr = static_cast<VarExpr *>(cond.get());
-    size_t addr{compiler->get_var(var_expr->name)};
-
-    compiler->add_scope();
-
-    *out << "LOOP: " << addr << '\n';
-
-    for (const StmtPtr &stmt : body) {
-      stmt->generate(out, compiler);
-    }
-
-    *out << "ENDLOOP: " << addr << '\n';
-
-    compiler->remove_scope();
-
-    return;
+  // Find the address that will be used for the loop instruction,
+  // allocate a new byte if needed. Also note how we allow addresses to
+  // be modified here per how i want loops to work with solo variable args
+  switch (result.type) {
+  case EvalType::ADDRESS: {
+    dest = result.val;
+    break;
   }
 
-  if (type == ExprType::NUMBER) {
-    NumberExpr *number_expr = static_cast<NumberExpr *>(cond.get());
-    Scope &scope = compiler->get_scope();
-
-    size_t addr{scope.get_next_free()};
-    scope.bump_next_free(1);
-
-    *out << "MOV: " << addr << ", " << number_expr->val << '\n';
-
-    compiler->add_scope();
-
-    *out << "LOOP: " << addr << '\n';
-
-    for (const StmtPtr &stmt : body) {
-      stmt->generate(out, compiler);
+  case EvalType::TEMP: {
+    dest = snapshot;
+    scope.set_next_free(snapshot + 1);
+    if (snapshot == result.val) {
+      break;
     }
 
-    *out << "ENDLOOP: " << addr << '\n';
+    *out << "MOV: " << snapshot << ", 0\n";
+    *out << "ADD: " << snapshot << ", " << result.val << "\n";
+    *out << "MOV: " << result.val << ", 0\n";
 
-    compiler->remove_scope();
-
-    return;
+    break;
   }
 
-  throw CompilerException(
-      cond->line_number,
-      "loop conditions can only be number literals or single variables");
+  case EvalType::CONST: {
+    dest = snapshot;
+    scope.set_next_free(snapshot + 1);
+
+    *out << "MOV: " << snapshot << ", " << result.val << '\n';
+    break;
+  }
+  }
+
+  *out << "LOOP: " << dest << '\n';
+  compiler->add_scope();
+
+  for (const StmtPtr &stmt : body) {
+    stmt->generate(out, compiler);
+  }
+
+  *out << "ENDLOOP: " << dest << '\n';
+  compiler->remove_scope();
 }
 
 void IfStmt::generate(std::ostream *out, Compiler *compiler) {

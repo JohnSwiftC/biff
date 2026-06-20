@@ -5,8 +5,7 @@ let index = 1;
 loop (199) {
   let jump = index + 1;
   let curr = index + jump;
-  let a = (200 / jump) - 1;
-  loop (a) {
+  loop ((200 / jump) - 1) {
     s[curr] = 1;
     curr = curr + jump;
   }
