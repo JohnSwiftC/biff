@@ -24,7 +24,7 @@ hello = "Hi!"; // compiler error
 
 Arrays consist of 8 bit integers as well, and the array's size must be able to be evaluated at compile time. Arrays can then be dynamically accessed.
 
-> Note: a string is *NOT* an array.
+> Note: a string is is also an array.
 
 ```rust
 let my_array = [100]; // an array of size 100
