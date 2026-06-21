@@ -94,6 +94,9 @@ std::ostream &operator<<(std::ostream &out, const Token &in) {
   case TokenType::PRINT_VAL:
     out << "PRINT_VAL";
     break;
+  case TokenType::DEF:
+    out << "DEF";
+    break;
   }
 
   return out;
@@ -169,6 +172,8 @@ TokenType Lexer::parse_word(std::string_view word) {
     return TokenType::PRINT_STR;
   } else if (word == "print_val") {
     return TokenType::PRINT_VAL;
+  } else if (word == "def") {
+    return TokenType::DEF;
   }
 
   if (is_numeric(word)) {

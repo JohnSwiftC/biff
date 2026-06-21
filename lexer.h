@@ -36,6 +36,7 @@ enum class TokenType {
   RBRACKET,
   PRINT_STR,
   PRINT_VAL,
+  DEF,
 };
 
 class Token {
