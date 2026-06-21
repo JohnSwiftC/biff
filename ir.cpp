@@ -130,9 +130,9 @@ void IRFileWriter::sub_const(size_t dest, unsigned char val) {
 }
 
 void IRFileWriter::insert_string(size_t dest, const std::string &str) {
-  shift(0, dest + 1);
+  shift(0, dest + 4);
 
-  size_t end{dest + 1};
+  size_t end{dest + 4};
   for (const unsigned char &c : str) {
     for (auto i{0}; i < c; ++i) {
       m_out << '+';
@@ -146,15 +146,16 @@ void IRFileWriter::insert_string(size_t dest, const std::string &str) {
 }
 
 void IRFileWriter::ouz(size_t addr, const std::string &op) {
-  shift(0, addr);
+  shift(0, addr + 3);
 
+  m_out << "[-]";
   m_out << '>';
   m_out << '[';
   m_out << op;
   m_out << ">]<";
   m_out << "[<]";
 
-  shift(addr, 0);
+  shift(addr + 3, 0);
 }
 
 void IRFileWriter::loop(size_t counter) {

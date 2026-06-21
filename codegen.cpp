@@ -337,7 +337,7 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
       size_t dest{};
       dest = snapshot;
       scope.set_var_addr(name, snapshot);
-      scope.bump_next_free(string_expr->val.size());
+      scope.bump_next_free(string_expr->val.size() + 3);
 
       *out << "INSERT_STRING: " << dest << ", " << string_expr->val << '\n';
       return;
@@ -552,6 +552,7 @@ void PrintStrStmt::generate(std::ostream *out, Compiler *compiler) {
 
   size_t addr = compiler->get_var(var_expr->name);
 
+  *out << "MOV: " << addr + 3 << ", 0\n";
   *out << "OUZ: " << addr << ", .\n";
 }
 
