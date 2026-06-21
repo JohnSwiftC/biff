@@ -1,0 +1,15 @@
+let my_word = "hEllo wOrld!!";
+
+let i = 0;
+
+loop (12) {
+  if (my_word[i] >= 97) {
+    if (my_word[i] <= 122) {
+      my_word[i] = my_word[i] - 32;
+    }
+  }
+
+  i = i + 1;
+}
+
+print_str(my_word);
