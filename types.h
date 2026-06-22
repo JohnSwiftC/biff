@@ -21,7 +21,11 @@ struct ArrayType : Type {
 };
 
 struct StructType : Type {
-  std::unordered_map<std::string, size_t> field_offsets;
+  struct Field {
+    size_t offset;
+    Type *type;
+  };
+  std::unordered_map<std::string, Field> field_offsets;
 
   StructType();
 };
