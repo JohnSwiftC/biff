@@ -1,4 +1,5 @@
 #include "compiler.h"
+#include "types.h"
 #include <cstddef>
 #include <stdexcept>
 
@@ -16,7 +17,9 @@ bool Scope::contains_var(std::string &var) const {
 }
 
 Compiler::Compiler(std::vector<StmtPtr> program)
-    : m_scope_stack{Scope()}, m_program{std::move(program)} {}
+    : m_scope_stack{Scope()}, m_program{std::move(program)}, m_type_pool{} {
+  m_type_pool["Integer"] = std::make_unique<IntegerType>();
+}
 Scope &Compiler::get_scope() { return m_scope_stack.back(); }
 void Compiler::add_scope() {
   m_scope_stack.emplace_back(m_scope_stack.back().get_next_free());
@@ -56,4 +59,16 @@ size_t Compiler::get_var(std::string &name) const {
 void Compiler::set_var(std::string &name, size_t addr) {
   size_t top_scope{m_scope_stack.size() - 1};
   m_scope_stack[top_scope].set_var_addr(name, addr);
+}
+
+void Compiler::add_type(std::string &name, TypePtr type) {
+  m_type_pool[name] = std::move(type);
+}
+
+bool Compiler::contains_type(std::string &name) const {
+  return (m_type_pool.count(name) != 0);
+}
+
+Type *Compiler::get_type(std::string &name) const {
+  return (m_type_pool.at(name).get());
 }

@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <exception>
+#include <memory>
 #include <string>
 #include <unordered_map>
 
@@ -21,6 +22,8 @@ struct Type {
   Type(size_t size);
   size_t get_size();
 };
+
+using TypePtr = std::unique_ptr<Type>;
 
 struct IntegerType : Type {
   IntegerType();

@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "ast.h"
+#include "types.h"
 
 class Scope {
 private:
@@ -31,6 +32,7 @@ class Compiler {
 private:
   std::vector<Scope> m_scope_stack;
   std::vector<StmtPtr> m_program;
+  std::unordered_map<std::string, TypePtr> m_type_pool;
 
 public:
   Compiler(std::vector<StmtPtr> program);
@@ -43,6 +45,10 @@ public:
   bool contains_var(std::string &name) const;
   size_t get_var(std::string &name) const;
   void set_var(std::string &name, size_t addr);
+
+  void add_type(std::string &type_name, TypePtr type);
+  bool contains_type(std::string &name) const;
+  Type *get_type(std::string &name) const;
 };
 
 #endif
