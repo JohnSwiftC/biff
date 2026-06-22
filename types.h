@@ -2,8 +2,17 @@
 #define TYPES_H
 
 #include <cstddef>
+#include <exception>
 #include <string>
 #include <unordered_map>
+
+struct TypeException : std::exception {
+  std::string message;
+
+  TypeException(std::string message);
+
+  virtual const char *what() const noexcept;
+};
 
 struct Type {
   size_t size;
@@ -25,9 +34,11 @@ struct StructType : Type {
     size_t offset;
     Type *type;
   };
-  std::unordered_map<std::string, Field> field_offsets;
+  std::unordered_map<std::string, Field> fields;
 
   StructType();
+
+  void add_field(std::string name, Type *type);
 };
 
 #endif
