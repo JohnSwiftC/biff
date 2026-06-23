@@ -15,12 +15,15 @@ struct TypeException : std::exception {
   virtual const char *what() const noexcept;
 };
 
+enum class TypeClass { BUILTIN, USERDEF };
+
 struct Type {
   size_t size;
-
+  TypeClass type_class;
   virtual ~Type() = default;
-  Type(size_t size);
-  size_t get_size();
+  Type(size_t size, TypeClass type_class);
+  size_t get_size() const;
+  TypeClass get_type_class() const;
 };
 
 using TypePtr = std::unique_ptr<Type>;

@@ -5,14 +5,17 @@ TypeException::TypeException(std::string message)
 
 const char *TypeException::what() const noexcept { return message.c_str(); }
 
-Type::Type(size_t size) : size{size} {}
-size_t Type::get_size() { return size; }
+Type::Type(size_t size, TypeClass type_class)
+    : size{size}, type_class{type_class} {}
+size_t Type::get_size() const { return size; }
+TypeClass Type::get_type_class() const { return type_class; }
 
-IntegerType::IntegerType() : Type(1) {}
+IntegerType::IntegerType() : Type(1, TypeClass::BUILTIN) {}
 
-ArrayType::ArrayType(size_t array_length) : Type(array_length + 4) {}
+ArrayType::ArrayType(size_t array_length)
+    : Type(array_length + 4, TypeClass::BUILTIN) {}
 
-StructType::StructType() : Type(0), fields{} {}
+StructType::StructType() : Type(0, TypeClass::USERDEF), fields{} {}
 void StructType::add_field(std::string name, Type *type) {
   if (fields.count(name) != 0) {
     throw TypeException("field: " + name +

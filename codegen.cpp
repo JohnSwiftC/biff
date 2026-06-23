@@ -714,3 +714,29 @@ void AssignArrayStmt::generate(std::ostream *out, Compiler *compiler) {
 
   scope.set_next_free(snapshot);
 }
+
+void DefineStructStmt::generate(std::ostream *out, Compiler *compiler) {
+  if (compiler->contains_type(name)) {
+    throw CompilerException(line_number,
+                            "type '" + name + "' has already been defined");
+  }
+
+  auto new_struct_type = std::make_unique<StructType>();
+
+  for (Field field : fields) {
+    if (!compiler->contains_type(field.type)) {
+      throw CompilerException(line_number,
+                              field.type + " is not a currently defined type");
+    }
+
+    Type *real_type = compiler->get_type(field.name);
+
+    new_struct_type->add_field(std::move(field.name), real_type);
+  }
+
+  try {
+    compiler->add_type(name, std::move(new_struct_type));
+  } catch (TypeException e) {
+    throw CompilerException(line_number, std::move(e.message));
+  }
+}

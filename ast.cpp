@@ -136,3 +136,17 @@ void AssignArrayStmt::display() const {
   target_expr->display();
   std::cout << ")";
 }
+
+DefineStructStmt::DefineStructStmt(std::string name, std::vector<Field> fields,
+                                   int line_number)
+    : Stmt(line_number), name{std::move(name)}, fields{std::move(fields)} {}
+void DefineStructStmt::display() const {
+  std::cout << "DisplayStructStmt (";
+  std::cout << name << ": ";
+
+  for (const Field &field : fields) {
+    std::cout << field.name << " " << field.type << ", ";
+  }
+
+  std::cout << ")";
+}

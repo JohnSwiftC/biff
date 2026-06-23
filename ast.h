@@ -1,6 +1,7 @@
 #ifndef AST_H
 #define AST_H
 
+#include "types.h"
 #include <memory>
 #include <optional>
 #include <ostream>
@@ -173,6 +174,22 @@ struct AssignArrayStmt : Stmt {
 
   AssignArrayStmt(std::string name, ExprPtr index_expr, ExprPtr target_expr,
                   int line_number);
+
+  void display() const override;
+  void generate(std::ostream *out, Compiler *compiler) override;
+};
+
+struct DefineStructStmt : Stmt {
+  struct Field {
+    std::string name;
+    std::string type;
+  };
+
+  std::string name;
+  std::vector<Field> fields;
+
+  DefineStructStmt(std::string name, std::vector<Field> fields,
+                   int line_number);
 
   void display() const override;
   void generate(std::ostream *out, Compiler *compiler) override;
