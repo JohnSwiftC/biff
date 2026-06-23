@@ -28,6 +28,7 @@ using TypePtr = std::unique_ptr<Type>;
 struct IntegerType : Type {
   IntegerType();
 };
+
 struct ArrayType : Type {
   ArrayType(size_t array_length);
 };

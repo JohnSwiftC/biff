@@ -2,6 +2,7 @@
 #define AST_H
 
 #include <memory>
+#include <optional>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -104,12 +105,13 @@ enum class AssignType {
 };
 
 struct AssignStmt : Stmt {
-
   std::string name;
+  std::optional<std::string> type_name;
   ExprPtr val;
-  AssignType type;
+  AssignType assign_type;
 
-  AssignStmt(std::string name, ExprPtr val, AssignType type, int line_number);
+  AssignStmt(std::string name, std::optional<std::string> type_name,
+             ExprPtr val, AssignType assign_type, int line_number);
 
   void display() const override;
   void generate(std::ostream *out, Compiler *compiler) override;
@@ -156,7 +158,7 @@ struct PrintValStmt : Stmt {
 struct CreateArrayStmt : Stmt {
   std::string name;
   ExprPtr size_expr;
-  AssignType type;
+  AssignType assign_type;
 
   CreateArrayStmt(std::string name, ExprPtr size_expr, int line_number);
 

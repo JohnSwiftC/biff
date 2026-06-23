@@ -2,7 +2,9 @@
 #include "ast.h"
 #include "compexcept.h"
 #include "compiler.h"
+#include "types.h"
 
+#include <memory>
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
@@ -328,15 +330,34 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
   Scope &scope = compiler->get_scope();
   size_t snapshot{scope.get_next_free()};
 
-  switch (type) {
+  switch (assign_type) {
   case AssignType::NEW: {
 
     if (val->get_type() == ExprType::STRING) {
       StringExpr *string_expr = static_cast<StringExpr *>(val.get());
 
+      if (type_name) {
+        throw CompilerException(
+            line_number,
+            "string assignments should not be given an explicit type");
+      }
+
+      std::string type_name =
+          "[" + std::to_string(string_expr->val.size()) + "]";
+
+      Type *type = nullptr;
+
+      if (compiler->contains_type(type_name)) {
+        type = compiler->get_type(type_name);
+      } else {
+        TypePtr new_type = std::make_unique<ArrayType>(string_expr->val.size());
+        type = new_type.get();
+        compiler->add_type(type_name, std::move(new_type));
+      }
+
       size_t dest{};
       dest = snapshot;
-      scope.set_var_addr(name, snapshot);
+      scope.set_var_addr(name, snapshot, type);
       scope.bump_next_free(string_expr->val.size() + 3);
 
       *out << "INSERT_STRING: " << dest << ", " << string_expr->val << '\n';

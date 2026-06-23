@@ -33,7 +33,8 @@ private:
   ExprPtr parse_factor();
 
   StmtPtr parse_assign(AssignType type);
-  StmtPtr parse_array_creation(Token &ident);
+  StmtPtr parse_array_creation(Token &ident,
+                               std::optional<std::string> &type_name);
   StmtPtr parse_array_assignment(Token &ident);
   StmtPtr parse_loop();
   StmtPtr parse_if();

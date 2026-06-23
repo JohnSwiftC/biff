@@ -59,10 +59,10 @@ void UnaryExpr::display() const {
 }
 ExprType UnaryExpr::get_type() const { return ExprType::UNARY; }
 
-AssignStmt::AssignStmt(std::string name, ExprPtr val, AssignType type,
-                       int line_number)
-    : Stmt(line_number), name{std::move(name)}, val{std::move(val)},
-      type{type} {}
+AssignStmt::AssignStmt(std::string name, std::optional<std::string> type_name,
+                       ExprPtr val, AssignType assign_type, int line_number)
+    : Stmt(line_number), name{std::move(name)}, type_name{std::move(type_name)},
+      val{std::move(val)}, assign_type{assign_type} {}
 void AssignStmt::display() const {
   std::cout << "AssignStmt (" << name << " ";
   val->display();

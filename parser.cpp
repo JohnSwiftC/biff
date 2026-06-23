@@ -4,6 +4,7 @@
 #include "lexer.h"
 
 #include <memory>
+#include <optional>
 
 bool Parser::check(const Token &token) const {
   return (token.get_type() == m_stream[m_pointer].get_type() &&
@@ -134,21 +135,43 @@ StmtPtr Parser::parse_assign(AssignType type) {
     return parse_array_assignment(ident);
   }
 
+  std::optional<std::string> type_name;
+
+  if (!check_type(TokenType::COLON)) {
+    type_name = std::nullopt;
+  } else {
+    Token type_ident = expect_type(
+        TokenType::IDENT, "No matching type identifier following colon");
+    type_name = type_ident.get_val();
+  }
+
   expect_type(TokenType::EQUALS, "No matching equals sign for assignment");
 
   if (check_type(TokenType::LBRACKET)) {
-    return parse_array_creation(ident);
+    // duct tape fix lol, dont want people trying to assign
+    // random types to arrays which dont actually do anything,
+    // so we just prop up the type and throw a compiler exception
+    // if this happens
+    return parse_array_creation(ident, type_name);
   }
 
   ExprPtr expr = parse_expression();
 
   expect_type(TokenType::SEMICOLON, "missing semicolon");
 
-  return std::make_unique<AssignStmt>(ident.get_val(), std::move(expr), type,
-                                      ident.get_line());
+  return std::make_unique<AssignStmt>(ident.get_val(), std::move(type_name),
+                                      std::move(expr), type, ident.get_line());
 }
 
-StmtPtr Parser::parse_array_creation(Token &ident) {
+StmtPtr Parser::parse_array_creation(Token &ident,
+                                     std::optional<std::string> &type_name) {
+
+  // duct tape escape hatch
+  if (type_name) {
+    throw CompilerException(ident.get_line(),
+                            "arrays cannot be assigned a type");
+  }
+
   expect_type(TokenType::LBRACKET,
               "failing LBRACKET when declaring a new array");
 

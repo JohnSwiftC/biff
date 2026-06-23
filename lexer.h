@@ -24,6 +24,7 @@ enum class TokenType {
   GEQ,
   OR,
   SEMICOLON,
+  COLON,
   LOOP,
   IF,
   NOT,
