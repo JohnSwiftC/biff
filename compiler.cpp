@@ -1,6 +1,8 @@
 #include "compiler.h"
 #include "types.h"
 #include <cstddef>
+#include <memory>
+#include <sstream>
 #include <stdexcept>
 
 Scope::Scope() : m_vars{}, m_next_free{1} {}
@@ -70,9 +72,31 @@ void Compiler::add_type(std::string &name, TypePtr type) {
 }
 
 bool Compiler::contains_type(std::string &name) const {
+
+  size_t name_size{name.size()};
+
+  if (name[0] == '[' && name[name_size - 1] == ']') {
+    return true;
+  }
+
   return (m_type_pool.count(name) != 0);
 }
 
-Type *Compiler::get_type(std::string &name) const {
+Type *Compiler::get_type(std::string &name) {
+
+  size_t name_size{name.size()};
+
+  // just create array types on the fly
+  if (name[0] == '[' && name[name_size - 1] == ']') {
+    if (m_type_pool.count(name) == 0) {
+      std::string array_len = name.substr(1, name_size - 1);
+      std::stringstream sstream(array_len);
+      size_t result;
+      sstream >> result;
+
+      m_type_pool[name] = std::make_unique<ArrayType>(result);
+    }
+  }
+
   return (m_type_pool.at(name).get());
 }
