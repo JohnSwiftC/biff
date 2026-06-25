@@ -38,6 +38,8 @@ enum class TokenType {
   PRINT_STR,
   PRINT_VAL,
   DEF,
+  STRUCT,
+  COMMA,
 };
 
 class Token {

@@ -100,6 +100,12 @@ std::ostream &operator<<(std::ostream &out, const Token &in) {
   case TokenType::DEF:
     out << "DEF";
     break;
+  case TokenType::STRUCT:
+    out << "STRUCT";
+    break;
+  case TokenType::COMMA:
+    out << "COMMA";
+    break;
   }
 
   return out;
@@ -115,7 +121,7 @@ bool Lexer::is_numeric(std::string_view word) {
 
 bool Lexer::is_punct(char c) {
   return c == ';' || c == '{' || c == '}' || c == '(' || c == ')' || c == '[' ||
-         c == ']' || c == '!' || c == ':';
+         c == ']' || c == '!' || c == ':' || c == ',';
 }
 
 TokenType Lexer::parse_word(std::string_view word) {
@@ -179,6 +185,10 @@ TokenType Lexer::parse_word(std::string_view word) {
     return TokenType::PRINT_VAL;
   } else if (word == "def") {
     return TokenType::DEF;
+  } else if (word == "struct") {
+    return TokenType::STRUCT;
+  } else if (word == ",") {
+    return TokenType::COMMA;
   }
 
   if (is_numeric(word)) {
