@@ -140,9 +140,7 @@ StmtPtr Parser::parse_assign(AssignType type) {
   if (!check_type(TokenType::COLON)) {
     type_name = std::nullopt;
   } else {
-    Token type_ident = expect_type(
-        TokenType::IDENT, "No matching type identifier following colon");
-    type_name = type_ident.get_val();
+    type_name = parse_type_string();
   }
 
   expect_type(TokenType::EQUALS, "No matching equals sign for assignment");
@@ -270,12 +268,10 @@ StmtPtr Parser::parse_define_struct() {
   std::vector<Field> fields;
 
   while (!check_type(TokenType::RBRACE)) {
-    Token &field_type_ident =
-        expect_type(TokenType::IDENT, "xpected type name in struct definition");
+    std::string type_name = parse_type_string();
     Token &field_name_ident = expect_type(
         TokenType::IDENT, "expected field name in struct definition");
-    fields.emplace_back(
-        Field{field_name_ident.get_val(), field_type_ident.get_val()});
+    fields.emplace_back(Field{field_name_ident.get_val(), type_name});
 
     expect_type(TokenType::COMMA, "expected comma following field entry");
   }
@@ -284,6 +280,24 @@ StmtPtr Parser::parse_define_struct() {
 
   return std::make_unique<DefineStructStmt>(
       std::move(ident.get_val()), std::move(fields), ident.get_line());
+}
+
+std::string Parser::parse_type_string() {
+
+  if (check_type(TokenType::LBRACKET)) {
+    std::string result;
+    advance();
+    result += "[";
+    Token &number_val = expect_type(
+        TokenType::NUMBER, "expected numeric value following open bracket");
+    result += number_val.get_val();
+    expect_type(TokenType::RBRACKET, "expected closing bracket");
+    result += "]";
+    return result;
+  }
+
+  Token &ident = expect_type(TokenType::IDENT, "expected ident in type name");
+  return ident.get_val();
 }
 
 Parser::Parser(std::vector<Token> stream)
