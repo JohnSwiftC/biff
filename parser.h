@@ -40,6 +40,7 @@ private:
   StmtPtr parse_if();
   StmtPtr parse_print_str();
   StmtPtr parse_print_val();
+  StmtPtr parse_define_struct();
 
 public:
   Parser(std::vector<Token> stream);

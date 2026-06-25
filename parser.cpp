@@ -258,6 +258,34 @@ StmtPtr Parser::parse_print_val() {
   return std::make_unique<PrintValStmt>(std::move(target), target->line_number);
 }
 
+StmtPtr Parser::parse_define_struct() {
+
+  expect_type(TokenType::STRUCT, "broken opening struct block");
+  Token &ident =
+      expect_type(TokenType::IDENT, "expected identifier after struct keyword");
+  expect_type(TokenType::LBRACE, "expected { after struct name");
+
+  using Field = DefineStructStmt::Field;
+
+  std::vector<Field> fields;
+
+  while (!check_type(TokenType::RBRACE)) {
+    Token &field_type_ident =
+        expect_type(TokenType::IDENT, "xpected type name in struct definition");
+    Token &field_name_ident = expect_type(
+        TokenType::IDENT, "expected field name in struct definition");
+    fields.emplace_back(
+        Field{field_name_ident.get_val(), field_type_ident.get_val()});
+
+    expect_type(TokenType::COMMA, "expected comma following field entry");
+  }
+
+  expect_type(TokenType::RBRACE, "missing } after struct definition");
+
+  return std::make_unique<DefineStructStmt>(
+      std::move(ident.get_val()), std::move(fields), ident.get_line());
+}
+
 Parser::Parser(std::vector<Token> stream)
     : m_stream{std::move(stream)}, m_pointer{0}, m_size{m_stream.size()} {}
 
@@ -289,11 +317,17 @@ std::vector<StmtPtr> Parser::parse_program() {
     case TokenType::PRINT_STR:
       program.push_back(parse_print_str());
       break;
+
     case TokenType::PRINT_VAL:
       program.push_back(parse_print_val());
       break;
-    // This only breaks parsing
-    // if a block is illegally used
+
+    case TokenType::STRUCT:
+      program.push_back(parse_define_struct());
+      break;
+
+      // This only breaks parsing
+      // if a block is illegally used
     case TokenType::RBRACE:
       advance();
       return program;
