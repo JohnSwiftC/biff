@@ -614,7 +614,7 @@ void PrintValStmt::generate(std::ostream *out, Compiler *compiler) {
 }
 
 void CreateArrayStmt::generate(std::ostream *out, Compiler *compiler) {
-  if (type == AssignType::SET) {
+  if (assign_type == AssignType::SET) {
     throw CompilerException(line_number,
                             "arrays cannot be redefined as a new array");
   }
@@ -630,7 +630,6 @@ void CreateArrayStmt::generate(std::ostream *out, Compiler *compiler) {
   }
 
   size_t base{scope.get_next_free()};
-  scope.set_var_addr(name, base);
 
   EvalResult size = eval(out, compiler, size_expr.get());
 
@@ -643,6 +642,10 @@ void CreateArrayStmt::generate(std::ostream *out, Compiler *compiler) {
   // Arrays require size + 4 bytes to function
   // (see the IR implementation for further info on why)
   scope.bump_next_free(size.val + 4);
+  std::string type_name = "[" + std::to_string(size.val) + "]";
+  Type *array_type = compiler->get_type(type_name);
+
+  scope.set_var_addr(name, base, array_type);
 }
 
 void AssignArrayStmt::generate(std::ostream *out, Compiler *compiler) {
