@@ -11,12 +11,14 @@ VarExpr::VarExpr(std::string name, std::vector<std::string> fields,
 void VarExpr::display() const { std::cout << "VarExpr (" << name << ")"; }
 ExprType VarExpr::get_type() const { return ExprType::VAR; }
 
-ArrayVarExpr::ArrayVarExpr(std::string name, ExprPtr index_expr,
+ArrayVarExpr::ArrayVarExpr(VarExprPtr var_expr, ExprPtr index_expr,
                            int line_number)
-    : Expr(line_number), name{std::move(name)},
+    : Expr(line_number), var_expr{std::move(var_expr)},
       index_expr{std::move(index_expr)} {}
 void ArrayVarExpr::display() const {
-  std::cout << "ArrayVarExpr (" << name << ": ";
+  std::cout << "ArrayVarExpr (";
+  var_expr->display();
+  std::cout << ": ";
   index_expr->display();
   std::cout << ")";
 }

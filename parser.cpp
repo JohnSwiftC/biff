@@ -42,7 +42,22 @@ Token &Parser::expect_type(const TokenType &type, std::string on_fail) {
 
 Token &Parser::advance() { return m_stream[m_pointer++]; }
 
-ExprPtr Parser::parse_var_expr() {}
+ExprPtr Parser::parse_var_expr() {
+  Token &var_name_ident = expect_type(TokenType::IDENT, "expected ident");
+
+  std::string name = var_name_ident.get_val();
+  std::vector<std::string> fields;
+
+  while (check_type(TokenType::DOT)) {
+    advance();
+    Token &field =
+        expect_type(TokenType::IDENT, "expected ident following dot operator");
+    fields.emplace_back(field.get_val());
+  }
+
+  return std::make_unique<VarExpr>(std::move(name), std::move(fields),
+                                   var_name_ident.get_line());
+}
 
 ExprPtr Parser::parse_expression() {
   ExprPtr left = parse_additive();

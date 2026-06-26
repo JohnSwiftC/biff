@@ -54,10 +54,11 @@ struct VarExpr : Expr {
 };
 
 struct ArrayVarExpr : Expr {
-  std::string name;
+  using VarExprPtr = std::unique_ptr<VarExpr>;
+  VarExprPtr var_expr;
   ExprPtr index_expr;
 
-  ArrayVarExpr(std::string name, ExprPtr index_expr, int line_number);
+  ArrayVarExpr(VarExprPtr var_expr, ExprPtr index_expr, int line_number);
 
   void display() const override;
   ExprType get_type() const override;
