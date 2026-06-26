@@ -40,6 +40,7 @@ enum class TokenType {
   DEF,
   STRUCT,
   COMMA,
+  DOT,
 };
 
 class Token {
