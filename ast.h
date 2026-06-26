@@ -42,10 +42,12 @@ struct Stmt {
 using ExprPtr = std::unique_ptr<Expr>;
 using StmtPtr = std::unique_ptr<Stmt>;
 
+// also handles struct field accesses in expressions
 struct VarExpr : Expr {
   std::string name;
+  std::vector<std::string> fields;
 
-  VarExpr(std::string val, int line_number);
+  VarExpr(std::string val, std::vector<std::string> fields, int line_number);
 
   void display() const override;
   ExprType get_type() const override;

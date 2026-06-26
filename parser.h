@@ -26,6 +26,7 @@ private:
   Token &expect_type(const TokenType &type, std::string on_fail);
   Token &advance();
 
+  ExprPtr parse_var_expr();
   ExprPtr parse_expression();
   ExprPtr parse_additive();
   ExprPtr parse_term();

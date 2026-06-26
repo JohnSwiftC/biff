@@ -5,7 +5,8 @@
 Expr::Expr(int line_number) : line_number{line_number} {}
 Stmt::Stmt(int line_number) : line_number{line_number} {}
 
-VarExpr::VarExpr(std::string name, int line_number)
+VarExpr::VarExpr(std::string name, std::vector<std::string> fields,
+                 int line_number)
     : Expr(line_number), name{std::move(name)} {}
 void VarExpr::display() const { std::cout << "VarExpr (" << name << ")"; }
 ExprType VarExpr::get_type() const { return ExprType::VAR; }

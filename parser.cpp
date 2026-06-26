@@ -42,6 +42,8 @@ Token &Parser::expect_type(const TokenType &type, std::string on_fail) {
 
 Token &Parser::advance() { return m_stream[m_pointer++]; }
 
+ExprPtr Parser::parse_var_expr() {}
+
 ExprPtr Parser::parse_expression() {
   ExprPtr left = parse_additive();
 
