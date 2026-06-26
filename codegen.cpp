@@ -10,7 +10,16 @@
 #include <stdexcept>
 
 // returns the address being referred too by a varexpr
-size_t eval_var_expr(Compiler *compiler, VarExpr *var_expr) {
+size_t eval_var_expr(Compiler *compiler, Expr *expr) {
+
+  if (expr->get_type() != ExprType::VAR) {
+    throw CompilerException(
+        expr->line_number,
+        "illegal expression type: should be a variable expression");
+  }
+
+  VarExpr *var_expr = static_cast<VarExpr *>(expr);
+
   if (!compiler->contains_var(var_expr->name)) {
     throw CompilerException(var_expr->line_number,
                             "variable has not yet been defined");
@@ -81,7 +90,7 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
 
   if (expr->get_type() == ExprType::VAR) {
     VarExpr *var_expr = static_cast<VarExpr *>(expr);
-    size_t addr{compiler->get_var(var_expr->name)};
+    size_t addr{eval_var_expr(compiler, static_cast<VarExpr *>(expr))};
 
     return EvalResult{EvalType::ADDRESS, addr};
   }
@@ -90,7 +99,7 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
     ArrayVarExpr *array_var_expr = static_cast<ArrayVarExpr *>(expr);
 
     Scope &scope = compiler->get_scope();
-    size_t base{compiler->get_var(array_var_expr->name)};
+    size_t base{eval_var_expr(compiler, array_var_expr->var_expr.get())};
     size_t dest{scope.get_next_free()};
 
     EvalResult index = eval(out, compiler, array_var_expr->index_expr.get());

@@ -54,11 +54,10 @@ struct VarExpr : Expr {
 };
 
 struct ArrayVarExpr : Expr {
-  using VarExprPtr = std::unique_ptr<VarExpr>;
-  VarExprPtr var_expr;
+  ExprPtr var_expr;
   ExprPtr index_expr;
 
-  ArrayVarExpr(VarExprPtr var_expr, ExprPtr index_expr, int line_number);
+  ArrayVarExpr(ExprPtr var_expr, ExprPtr index_expr, int line_number);
 
   void display() const override;
   ExprType get_type() const override;
@@ -109,12 +108,12 @@ enum class AssignType {
 };
 
 struct AssignStmt : Stmt {
-  std::string name;
+  ExprPtr target_var_expr;
   std::optional<std::string> type_name;
   ExprPtr val;
   AssignType assign_type;
 
-  AssignStmt(std::string name, std::optional<std::string> type_name,
+  AssignStmt(ExprPtr target_var_expr, std::optional<std::string> type_name,
              ExprPtr val, AssignType assign_type, int line_number);
 
   void display() const override;
@@ -171,12 +170,12 @@ struct CreateArrayStmt : Stmt {
 };
 
 struct AssignArrayStmt : Stmt {
-  std::string name;
+  ExprPtr target_var_expr;
   ExprPtr index_expr;
   ExprPtr target_expr;
 
-  AssignArrayStmt(std::string name, ExprPtr index_expr, ExprPtr target_expr,
-                  int line_number);
+  AssignArrayStmt(ExprPtr target_vat_expr, ExprPtr index_expr,
+                  ExprPtr target_expr, int line_number);
 
   void display() const override;
   void generate(std::ostream *out, Compiler *compiler) override;

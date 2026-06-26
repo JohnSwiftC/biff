@@ -42,7 +42,7 @@ Token &Parser::expect_type(const TokenType &type, std::string on_fail) {
 
 Token &Parser::advance() { return m_stream[m_pointer++]; }
 
-std::unique_ptr<VarExpr> Parser::parse_var_expr() {
+ExprPtr Parser::parse_var_expr() {
   Token &var_name_ident = expect_type(TokenType::IDENT, "expected ident");
 
   std::string name = var_name_ident.get_val();
@@ -125,7 +125,7 @@ ExprPtr Parser::parse_factor() {
     return std::make_unique<StringExpr>(advance().get_val(), token.get_line());
   }
   if (check_type(TokenType::IDENT)) {
-    std::unique_ptr<VarExpr> var_expr = parse_var_expr();
+    ExprPtr var_expr = parse_var_expr();
     if (check_type(TokenType::LBRACKET)) {
       advance();
       ExprPtr index_expr = parse_expression();

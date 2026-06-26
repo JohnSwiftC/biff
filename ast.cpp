@@ -11,7 +11,7 @@ VarExpr::VarExpr(std::string name, std::vector<std::string> fields,
 void VarExpr::display() const { std::cout << "VarExpr (" << name << ")"; }
 ExprType VarExpr::get_type() const { return ExprType::VAR; }
 
-ArrayVarExpr::ArrayVarExpr(VarExprPtr var_expr, ExprPtr index_expr,
+ArrayVarExpr::ArrayVarExpr(ExprPtr var_expr, ExprPtr index_expr,
                            int line_number)
     : Expr(line_number), var_expr{std::move(var_expr)},
       index_expr{std::move(index_expr)} {}
@@ -62,12 +62,15 @@ void UnaryExpr::display() const {
 }
 ExprType UnaryExpr::get_type() const { return ExprType::UNARY; }
 
-AssignStmt::AssignStmt(std::string name, std::optional<std::string> type_name,
-                       ExprPtr val, AssignType assign_type, int line_number)
-    : Stmt(line_number), name{std::move(name)}, type_name{std::move(type_name)},
-      val{std::move(val)}, assign_type{assign_type} {}
+AssignStmt::AssignStmt(ExprPtr target_var_expr,
+                       std::optional<std::string> type_name, ExprPtr val,
+                       AssignType assign_type, int line_number)
+    : Stmt(line_number), target_var_expr{std::move(target_var_expr)},
+      type_name{std::move(type_name)}, val{std::move(val)},
+      assign_type{assign_type} {}
 void AssignStmt::display() const {
-  std::cout << "AssignStmt (" << name << " ";
+  std::cout << "AssignStmt ( ";
+  target_var_expr->display();
   val->display();
   std::cout << ")";
 }
@@ -128,9 +131,9 @@ void CreateArrayStmt::display() const {
   std::cout << ")";
 }
 
-AssignArrayStmt::AssignArrayStmt(std::string name, ExprPtr index_expr,
+AssignArrayStmt::AssignArrayStmt(ExprPtr target_var_expr, ExprPtr index_expr,
                                  ExprPtr target_expr, int line_number)
-    : Stmt(line_number), name{std::move(name)},
+    : Stmt(line_number), target_var_expr{std::move(target_var_expr)},
       index_expr{std::move(index_expr)}, target_expr{std::move(target_expr)} {}
 void AssignArrayStmt::display() const {
   std::cout << "AssignArrayStmt (";
