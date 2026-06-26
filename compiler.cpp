@@ -11,8 +11,17 @@ Scope::Scope(size_t next_free) : m_vars{}, m_next_free{next_free} {}
 size_t Scope::get_var_addr(std::string &var) const {
   return m_vars.at(var).addr;
 }
+
+const Scope::Variable &Scope::get_var(std::string &var) const {
+  return m_vars.at(var);
+}
+
 void Scope::set_var_addr(std::string var, size_t addr, Type *type) {
   m_vars[var] = Variable{addr, type};
+}
+
+void Scope::set_var(std::string name, Scope::Variable var) {
+  m_vars[name] = var;
 }
 
 size_t Scope::get_next_free() const { return m_next_free; }
@@ -51,10 +60,10 @@ bool Compiler::contains_var(std::string &name) const {
   return false;
 }
 
-size_t Compiler::get_var(std::string &name) const {
+const Scope::Variable &Compiler::get_var(std::string &name) const {
   for (size_t i{m_scope_stack.size()}; i-- > 0;) {
     if (m_scope_stack[i].contains_var(name)) {
-      return m_scope_stack[i].get_var_addr(name);
+      return m_scope_stack[i].get_var(name);
     }
   }
 

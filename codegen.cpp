@@ -9,6 +9,47 @@
 #include <sstream>
 #include <stdexcept>
 
+// returns the address being referred too by a varexpr
+size_t eval_var_expr(Compiler *compiler, VarExpr *var_expr) {
+  if (!compiler->contains_var(var_expr->name)) {
+    throw CompilerException(var_expr->line_number,
+                            "variable has not yet been defined");
+  }
+
+  const Scope::Variable &var = compiler->get_var(var_expr->name);
+
+  size_t curr_addr = var.addr;
+  Type *curr_type = var.type;
+
+  // quick check to see if we are in a userdefed struct and the such
+  if (curr_type->type_class == TypeClass::USERDEF &&
+      var_expr->fields.size() == 0) {
+    throw CompilerException(
+        var_expr->line_number,
+        "variables of a struct type must be accessed by field");
+  }
+
+  for (const std::string &field : var_expr->fields) {
+    if (curr_type->type_class == TypeClass::BUILTIN) {
+      throw CompilerException(var_expr->line_number,
+                              "illegal field access in non-struct type");
+    }
+
+    StructType *struct_type = static_cast<StructType *>(curr_type);
+
+    if (struct_type->fields.count(field) == 0) {
+      throw CompilerException(var_expr->line_number,
+                              "field: " + field + " does not exist in type");
+    }
+
+    StructType::Field &field_data = struct_type->fields.at(field);
+    curr_type = field_data.type;
+    curr_addr += field_data.offset;
+  }
+
+  return curr_addr;
+}
+
 // This function and expression evaluation are pretty nasty so i think it
 // deserves an explaination. This recursively searches through the expression
 // tree and returns an EvalResult at each level. CONST means that both branches
