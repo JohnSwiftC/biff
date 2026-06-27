@@ -109,3 +109,7 @@ Type *Compiler::get_type(std::string &name) {
 
   return (m_type_pool.at(name).get());
 }
+
+Type *Compiler::get_builtin_integer() const {
+  return m_type_pool.at("Integer").get();
+}

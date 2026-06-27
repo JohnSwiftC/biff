@@ -380,8 +380,20 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
   Scope &scope = compiler->get_scope();
   size_t snapshot{scope.get_next_free()};
 
+  if (target_var_expr->get_type() != ExprType::VAR) {
+    throw CompilerException(
+        line_number, "assignments may only happen on variable expressions");
+  }
+
+  VarExpr *var_expr = static_cast<VarExpr *>(target_var_expr.get());
+
   switch (assign_type) {
   case AssignType::NEW: {
+
+    if (var_expr->fields.size() != 0) {
+      throw CompilerException(line_number,
+                              "let cannot be used to define new struct fields");
+    }
 
     if (val->get_type() == ExprType::STRING) {
       StringExpr *string_expr = static_cast<StringExpr *>(val.get());
@@ -407,7 +419,7 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
 
       size_t dest{};
       dest = snapshot;
-      scope.set_var_addr(name, snapshot, type);
+      scope.set_var_addr(var_expr->name, snapshot, type);
       scope.bump_next_free(string_expr->val.size() + 3);
 
       *out << "INSERT_STRING: " << dest << ", " << string_expr->val << '\n';
@@ -417,12 +429,13 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
     EvalResult result = eval(out, compiler, val.get());
     size_t dest{};
 
-    if (scope.contains_var(name)) {
-      dest = scope.get_var_addr(name);
+    if (scope.contains_var(var_expr->name)) {
+      dest = scope.get_var_addr(var_expr->name);
       scope.set_next_free(snapshot);
     } else {
       dest = snapshot;
-      scope.set_var_addr(name, snapshot);
+      scope.set_var_addr(var_expr->name, snapshot,
+                         compiler->get_builtin_integer());
       scope.set_next_free(snapshot + 1);
     }
 
@@ -458,13 +471,6 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
   }
 
   case AssignType::SET: {
-
-    if (target_var_expr->get_type() != ExprType::VAR) {
-      throw CompilerException(
-          line_number, "assignments may only happen on variable expressions");
-    }
-
-    VarExpr *var_expr = static_cast<VarExpr *>(target_var_expr.get());
 
     if (val->get_type() == ExprType::STRING) {
       throw CompilerException(

@@ -56,6 +56,7 @@ public:
   void add_type(std::string &type_name, TypePtr type);
   bool contains_type(std::string &name) const;
   Type *get_type(std::string &name);
+  Type *get_builtin_integer() const;
 };
 
 #endif
