@@ -803,7 +803,7 @@ void DefineStructStmt::generate(std::ostream *out, Compiler *compiler) {
                               field.type + " is not a currently defined type");
     }
 
-    Type *real_type = compiler->get_type(field.name);
+    Type *real_type = compiler->get_type(field.type);
 
     new_struct_type->add_field(std::move(field.name), real_type);
   }
