@@ -633,7 +633,7 @@ void PrintStrStmt::generate(std::ostream *out, Compiler *compiler) {
 
   VarExpr *var_expr = static_cast<VarExpr *>(target.get());
 
-  size_t addr = compiler->get_var(var_expr->name);
+  size_t addr = eval_var_expr(compiler, var_expr);
 
   *out << "MOV: " << addr + 3 << ", 0\n";
   *out << "OUZ: " << addr << ", .\n";
