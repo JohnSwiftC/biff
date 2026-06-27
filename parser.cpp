@@ -3,7 +3,9 @@
 #include "compexcept.h"
 #include "lexer.h"
 
+#include <cassert>
 #include <memory>
+#include <optional>
 
 bool Parser::check(const Token &token) const {
   return (token.get_type() == m_stream[m_pointer].get_type() &&
@@ -40,6 +42,23 @@ Token &Parser::expect_type(const TokenType &type, std::string on_fail) {
 }
 
 Token &Parser::advance() { return m_stream[m_pointer++]; }
+
+ExprPtr Parser::parse_var_expr() {
+  Token &var_name_ident = expect_type(TokenType::IDENT, "expected ident");
+
+  std::string name = var_name_ident.get_val();
+  std::vector<std::string> fields;
+
+  while (check_type(TokenType::DOT)) {
+    advance();
+    Token &field =
+        expect_type(TokenType::IDENT, "expected ident following dot operator");
+    fields.emplace_back(field.get_val());
+  }
+
+  return std::make_unique<VarExpr>(std::move(name), std::move(fields),
+                                   var_name_ident.get_line());
+}
 
 ExprPtr Parser::parse_expression() {
   ExprPtr left = parse_additive();
@@ -107,15 +126,16 @@ ExprPtr Parser::parse_factor() {
     return std::make_unique<StringExpr>(advance().get_val(), token.get_line());
   }
   if (check_type(TokenType::IDENT)) {
-    std::string name = advance().get_val();
+    ExprPtr var_expr = parse_var_expr();
     if (check_type(TokenType::LBRACKET)) {
       advance();
       ExprPtr index_expr = parse_expression();
       expect_type(TokenType::RBRACKET, "missing closing bracket");
       return std::make_unique<ArrayVarExpr>(
-          std::move(name), std::move(index_expr), token.get_line());
+          std::move(var_expr), std::move(index_expr), token.get_line());
     }
-    return std::make_unique<VarExpr>(name, token.get_line());
+
+    return var_expr;
   }
   if (check_type(TokenType::LPAREN)) {
     advance(); // eat "("
@@ -128,27 +148,59 @@ ExprPtr Parser::parse_factor() {
 }
 
 StmtPtr Parser::parse_assign(AssignType type) {
-  Token &ident = expect_type(TokenType::IDENT, "Can't assign non ident");
+  ExprPtr target_var_expr = parse_var_expr();
+
+  assert(target_var_expr->get_type() == ExprType::VAR);
+
+  VarExpr *var_expr = static_cast<VarExpr *>(target_var_expr.get());
 
   if (check_type(TokenType::LBRACKET)) {
-    return parse_array_assignment(ident);
+    return parse_array_assignment(std::move(target_var_expr));
+  }
+
+  std::optional<std::string> type_name;
+
+  if (!check_type(TokenType::COLON)) {
+    type_name = std::nullopt;
+  } else {
+    advance();
+    type_name = parse_type_string();
   }
 
   expect_type(TokenType::EQUALS, "No matching equals sign for assignment");
 
   if (check_type(TokenType::LBRACKET)) {
-    return parse_array_creation(ident);
+    // duct tape fix lol, dont want people trying to assign
+    // random types to arrays which dont actually do anything,
+    // so we just prop up the type and throw a compiler exception
+    // if this happens. also, arrays can only be created with this method
+    if (var_expr->fields.size() != 0) {
+      throw CompilerException(
+          var_expr->line_number,
+          "arrays cannot be created on exisiting struct-type fields. either "
+          "define it in the struct type, or on a single variable");
+    }
+    return parse_array_creation(var_expr->name, var_expr->line_number,
+                                type_name);
   }
 
   ExprPtr expr = parse_expression();
 
   expect_type(TokenType::SEMICOLON, "missing semicolon");
 
-  return std::make_unique<AssignStmt>(ident.get_val(), std::move(expr), type,
-                                      ident.get_line());
+  return std::make_unique<AssignStmt>(std::move(target_var_expr),
+                                      std::move(type_name), std::move(expr),
+                                      type, target_var_expr->line_number);
 }
 
-StmtPtr Parser::parse_array_creation(Token &ident) {
+StmtPtr Parser::parse_array_creation(std::string name, int line_number,
+                                     std::optional<std::string> &type_name) {
+
+  // duct tape escape hatch
+  if (type_name) {
+    throw CompilerException(line_number, "arrays cannot be assigned a type");
+  }
+
   expect_type(TokenType::LBRACKET,
               "failing LBRACKET when declaring a new array");
 
@@ -157,11 +209,11 @@ StmtPtr Parser::parse_array_creation(Token &ident) {
   expect_type(TokenType::RBRACKET, "no closing RBRACKET on array declaration");
   expect_type(TokenType::SEMICOLON, "missing semicolon");
 
-  return std::make_unique<CreateArrayStmt>(
-      ident.get_val(), std::move(size_expr), ident.get_line());
+  return std::make_unique<CreateArrayStmt>(std::move(name),
+                                           std::move(size_expr), line_number);
 }
 
-StmtPtr Parser::parse_array_assignment(Token &ident) {
+StmtPtr Parser::parse_array_assignment(ExprPtr target_var_expr) {
   expect_type(TokenType::LBRACKET, "failed LBRACKET in index");
 
   ExprPtr index_expr = parse_expression();
@@ -173,9 +225,9 @@ StmtPtr Parser::parse_array_assignment(Token &ident) {
 
   expect_type(TokenType::SEMICOLON, "missing semicolon");
 
-  return std::make_unique<AssignArrayStmt>(ident.get_val(),
-                                           std::move(index_expr),
-                                           std::move(target), ident.get_line());
+  return std::make_unique<AssignArrayStmt>(
+      std::move(target_var_expr), std::move(index_expr), std::move(target),
+      target_var_expr->line_number);
 }
 
 StmtPtr Parser::parse_loop() {
@@ -235,6 +287,50 @@ StmtPtr Parser::parse_print_val() {
   return std::make_unique<PrintValStmt>(std::move(target), target->line_number);
 }
 
+StmtPtr Parser::parse_define_struct() {
+
+  expect_type(TokenType::STRUCT, "broken opening struct block");
+  Token &ident =
+      expect_type(TokenType::IDENT, "expected identifier after struct keyword");
+  expect_type(TokenType::LBRACE, "expected { after struct name");
+
+  using Field = DefineStructStmt::Field;
+
+  std::vector<Field> fields;
+
+  while (!check_type(TokenType::RBRACE)) {
+    std::string type_name = parse_type_string();
+    Token &field_name_ident = expect_type(
+        TokenType::IDENT, "expected field name in struct definition");
+    fields.emplace_back(Field{field_name_ident.get_val(), type_name});
+
+    expect_type(TokenType::COMMA, "expected comma following field entry");
+  }
+
+  expect_type(TokenType::RBRACE, "missing } after struct definition");
+
+  return std::make_unique<DefineStructStmt>(
+      std::move(ident.get_val()), std::move(fields), ident.get_line());
+}
+
+std::string Parser::parse_type_string() {
+
+  if (check_type(TokenType::LBRACKET)) {
+    std::string result;
+    advance();
+    result += "[";
+    Token &number_val = expect_type(
+        TokenType::NUMBER, "expected numeric value following open bracket");
+    result += number_val.get_val();
+    expect_type(TokenType::RBRACKET, "expected closing bracket");
+    result += "]";
+    return result;
+  }
+
+  Token &ident = expect_type(TokenType::IDENT, "expected ident in type name");
+  return ident.get_val();
+}
+
 Parser::Parser(std::vector<Token> stream)
     : m_stream{std::move(stream)}, m_pointer{0}, m_size{m_stream.size()} {}
 
@@ -266,11 +362,17 @@ std::vector<StmtPtr> Parser::parse_program() {
     case TokenType::PRINT_STR:
       program.push_back(parse_print_str());
       break;
+
     case TokenType::PRINT_VAL:
       program.push_back(parse_print_val());
       break;
-    // This only breaks parsing
-    // if a block is illegally used
+
+    case TokenType::STRUCT:
+      program.push_back(parse_define_struct());
+      break;
+
+      // This only breaks parsing
+      // if a block is illegally used
     case TokenType::RBRACE:
       advance();
       return program;

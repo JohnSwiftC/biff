@@ -5,17 +5,20 @@
 Expr::Expr(int line_number) : line_number{line_number} {}
 Stmt::Stmt(int line_number) : line_number{line_number} {}
 
-VarExpr::VarExpr(std::string name, int line_number)
+VarExpr::VarExpr(std::string name, std::vector<std::string> fields,
+                 int line_number)
     : Expr(line_number), name{std::move(name)} {}
 void VarExpr::display() const { std::cout << "VarExpr (" << name << ")"; }
 ExprType VarExpr::get_type() const { return ExprType::VAR; }
 
-ArrayVarExpr::ArrayVarExpr(std::string name, ExprPtr index_expr,
+ArrayVarExpr::ArrayVarExpr(ExprPtr var_expr, ExprPtr index_expr,
                            int line_number)
-    : Expr(line_number), name{std::move(name)},
+    : Expr(line_number), var_expr{std::move(var_expr)},
       index_expr{std::move(index_expr)} {}
 void ArrayVarExpr::display() const {
-  std::cout << "ArrayVarExpr (" << name << ": ";
+  std::cout << "ArrayVarExpr (";
+  var_expr->display();
+  std::cout << ": ";
   index_expr->display();
   std::cout << ")";
 }
@@ -59,12 +62,15 @@ void UnaryExpr::display() const {
 }
 ExprType UnaryExpr::get_type() const { return ExprType::UNARY; }
 
-AssignStmt::AssignStmt(std::string name, ExprPtr val, AssignType type,
-                       int line_number)
-    : Stmt(line_number), name{std::move(name)}, val{std::move(val)},
-      type{type} {}
+AssignStmt::AssignStmt(ExprPtr target_var_expr,
+                       std::optional<std::string> type_name, ExprPtr val,
+                       AssignType assign_type, int line_number)
+    : Stmt(line_number), target_var_expr{std::move(target_var_expr)},
+      type_name{std::move(type_name)}, val{std::move(val)},
+      assign_type{assign_type} {}
 void AssignStmt::display() const {
-  std::cout << "AssignStmt (" << name << " ";
+  std::cout << "AssignStmt ( ";
+  target_var_expr->display();
   val->display();
   std::cout << ")";
 }
@@ -125,14 +131,28 @@ void CreateArrayStmt::display() const {
   std::cout << ")";
 }
 
-AssignArrayStmt::AssignArrayStmt(std::string name, ExprPtr index_expr,
+AssignArrayStmt::AssignArrayStmt(ExprPtr target_var_expr, ExprPtr index_expr,
                                  ExprPtr target_expr, int line_number)
-    : Stmt(line_number), name{std::move(name)},
+    : Stmt(line_number), target_var_expr{std::move(target_var_expr)},
       index_expr{std::move(index_expr)}, target_expr{std::move(target_expr)} {}
 void AssignArrayStmt::display() const {
   std::cout << "AssignArrayStmt (";
   index_expr->display();
   std::cout << " ";
   target_expr->display();
+  std::cout << ")";
+}
+
+DefineStructStmt::DefineStructStmt(std::string name, std::vector<Field> fields,
+                                   int line_number)
+    : Stmt(line_number), name{std::move(name)}, fields{std::move(fields)} {}
+void DefineStructStmt::display() const {
+  std::cout << "DisplayStructStmt (";
+  std::cout << name << ": ";
+
+  for (const Field &field : fields) {
+    std::cout << field.name << " " << field.type << ", ";
+  }
+
   std::cout << ")";
 }

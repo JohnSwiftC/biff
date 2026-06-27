@@ -2,10 +2,62 @@
 #include "ast.h"
 #include "compexcept.h"
 #include "compiler.h"
+#include "types.h"
 
+#include <memory>
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
+
+// returns the address being referred too by a varexpr
+size_t eval_var_expr(Compiler *compiler, Expr *expr) {
+
+  if (expr->get_type() != ExprType::VAR) {
+    throw CompilerException(
+        expr->line_number,
+        "illegal expression type: should be a variable expression");
+  }
+
+  VarExpr *var_expr = static_cast<VarExpr *>(expr);
+
+  if (!compiler->contains_var(var_expr->name)) {
+    throw CompilerException(var_expr->line_number,
+                            "variable has not yet been defined");
+  }
+
+  const Scope::Variable &var = compiler->get_var(var_expr->name);
+
+  size_t curr_addr = var.addr;
+  Type *curr_type = var.type;
+
+  // quick check to see if we are in a userdefed struct and the such
+  if (curr_type->type_class == TypeClass::USERDEF &&
+      var_expr->fields.size() == 0) {
+    throw CompilerException(
+        var_expr->line_number,
+        "variables of a struct type must be accessed by field");
+  }
+
+  for (const std::string &field : var_expr->fields) {
+    if (curr_type->type_class == TypeClass::BUILTIN) {
+      throw CompilerException(var_expr->line_number,
+                              "illegal field access in non-struct type");
+    }
+
+    StructType *struct_type = static_cast<StructType *>(curr_type);
+
+    if (struct_type->fields.count(field) == 0) {
+      throw CompilerException(var_expr->line_number,
+                              "field: " + field + " does not exist in type");
+    }
+
+    StructType::Field &field_data = struct_type->fields.at(field);
+    curr_type = field_data.type;
+    curr_addr += field_data.offset;
+  }
+
+  return curr_addr;
+}
 
 // This function and expression evaluation are pretty nasty so i think it
 // deserves an explaination. This recursively searches through the expression
@@ -38,7 +90,7 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
 
   if (expr->get_type() == ExprType::VAR) {
     VarExpr *var_expr = static_cast<VarExpr *>(expr);
-    size_t addr{compiler->get_var(var_expr->name)};
+    size_t addr{eval_var_expr(compiler, static_cast<VarExpr *>(expr))};
 
     return EvalResult{EvalType::ADDRESS, addr};
   }
@@ -47,7 +99,7 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
     ArrayVarExpr *array_var_expr = static_cast<ArrayVarExpr *>(expr);
 
     Scope &scope = compiler->get_scope();
-    size_t base{compiler->get_var(array_var_expr->name)};
+    size_t base{eval_var_expr(compiler, array_var_expr->var_expr.get())};
     size_t dest{scope.get_next_free()};
 
     EvalResult index = eval(out, compiler, array_var_expr->index_expr.get());
@@ -328,15 +380,46 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
   Scope &scope = compiler->get_scope();
   size_t snapshot{scope.get_next_free()};
 
-  switch (type) {
+  if (target_var_expr->get_type() != ExprType::VAR) {
+    throw CompilerException(
+        line_number, "assignments may only happen on variable expressions");
+  }
+
+  VarExpr *var_expr = static_cast<VarExpr *>(target_var_expr.get());
+
+  switch (assign_type) {
   case AssignType::NEW: {
+
+    if (var_expr->fields.size() != 0) {
+      throw CompilerException(line_number,
+                              "let cannot be used to define new struct fields");
+    }
 
     if (val->get_type() == ExprType::STRING) {
       StringExpr *string_expr = static_cast<StringExpr *>(val.get());
 
+      if (type_name) {
+        throw CompilerException(
+            line_number,
+            "string assignments should not be given an explicit type");
+      }
+
+      std::string type_name =
+          "[" + std::to_string(string_expr->val.size()) + "]";
+
+      Type *type = nullptr;
+
+      if (compiler->contains_type(type_name)) {
+        type = compiler->get_type(type_name);
+      } else {
+        TypePtr new_type = std::make_unique<ArrayType>(string_expr->val.size());
+        type = new_type.get();
+        compiler->add_type(type_name, std::move(new_type));
+      }
+
       size_t dest{};
       dest = snapshot;
-      scope.set_var_addr(name, snapshot);
+      scope.set_var_addr(var_expr->name, snapshot, type);
       scope.bump_next_free(string_expr->val.size() + 3);
 
       *out << "INSERT_STRING: " << dest << ", " << string_expr->val << '\n';
@@ -346,12 +429,13 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
     EvalResult result = eval(out, compiler, val.get());
     size_t dest{};
 
-    if (scope.contains_var(name)) {
-      dest = scope.get_var_addr(name);
+    if (scope.contains_var(var_expr->name)) {
+      dest = scope.get_var_addr(var_expr->name);
       scope.set_next_free(snapshot);
     } else {
       dest = snapshot;
-      scope.set_var_addr(name, snapshot);
+      scope.set_var_addr(var_expr->name, snapshot,
+                         compiler->get_builtin_integer());
       scope.set_next_free(snapshot + 1);
     }
 
@@ -391,14 +475,13 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
     if (val->get_type() == ExprType::STRING) {
       throw CompilerException(
           val->line_number,
-          "attempted to redfine variable with a string literal: " + name);
+          "attempted to redfine variable with a string literal: " +
+              var_expr->name);
     }
 
     EvalResult result = eval(out, compiler, val.get());
 
-    // throws an exception if this name
-    // does not exist anywhere in the scope
-    size_t dest = compiler->get_var(name);
+    size_t dest = eval_var_expr(compiler, var_expr);
 
     switch (result.type) {
     case EvalType::ADDRESS: {
@@ -550,7 +633,7 @@ void PrintStrStmt::generate(std::ostream *out, Compiler *compiler) {
 
   VarExpr *var_expr = static_cast<VarExpr *>(target.get());
 
-  size_t addr = compiler->get_var(var_expr->name);
+  size_t addr = eval_var_expr(compiler, var_expr);
 
   *out << "MOV: " << addr + 3 << ", 0\n";
   *out << "OUZ: " << addr << ", .\n";
@@ -593,7 +676,7 @@ void PrintValStmt::generate(std::ostream *out, Compiler *compiler) {
 }
 
 void CreateArrayStmt::generate(std::ostream *out, Compiler *compiler) {
-  if (type == AssignType::SET) {
+  if (assign_type == AssignType::SET) {
     throw CompilerException(line_number,
                             "arrays cannot be redefined as a new array");
   }
@@ -609,7 +692,6 @@ void CreateArrayStmt::generate(std::ostream *out, Compiler *compiler) {
   }
 
   size_t base{scope.get_next_free()};
-  scope.set_var_addr(name, base);
 
   EvalResult size = eval(out, compiler, size_expr.get());
 
@@ -622,10 +704,23 @@ void CreateArrayStmt::generate(std::ostream *out, Compiler *compiler) {
   // Arrays require size + 4 bytes to function
   // (see the IR implementation for further info on why)
   scope.bump_next_free(size.val + 4);
+  std::string type_name = "[" + std::to_string(size.val) + "]";
+  Type *array_type = compiler->get_type(type_name);
+
+  scope.set_var_addr(name, base, array_type);
 }
 
 void AssignArrayStmt::generate(std::ostream *out, Compiler *compiler) {
-  size_t base{compiler->get_var(name)};
+
+  if (target_var_expr->get_type() != ExprType::VAR) {
+    throw CompilerException(
+        target_var_expr->line_number,
+        "assignments can only be applied to variables expressions");
+  }
+
+  VarExpr *var_expr = static_cast<VarExpr *>(target_var_expr.get());
+
+  size_t base = eval_var_expr(compiler, var_expr);
   Scope &scope = compiler->get_scope();
 
   size_t snapshot{scope.get_next_free()};
@@ -692,4 +787,30 @@ void AssignArrayStmt::generate(std::ostream *out, Compiler *compiler) {
   }
 
   scope.set_next_free(snapshot);
+}
+
+void DefineStructStmt::generate(std::ostream *out, Compiler *compiler) {
+  if (compiler->contains_type(name)) {
+    throw CompilerException(line_number,
+                            "type '" + name + "' has already been defined");
+  }
+
+  auto new_struct_type = std::make_unique<StructType>();
+
+  for (Field field : fields) {
+    if (!compiler->contains_type(field.type)) {
+      throw CompilerException(line_number,
+                              field.type + " is not a currently defined type");
+    }
+
+    Type *real_type = compiler->get_type(field.type);
+
+    new_struct_type->add_field(std::move(field.name), real_type);
+  }
+
+  try {
+    compiler->add_type(name, std::move(new_struct_type));
+  } catch (TypeException e) {
+    throw CompilerException(line_number, std::move(e.message));
+  }
 }

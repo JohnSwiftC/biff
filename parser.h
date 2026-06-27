@@ -26,6 +26,7 @@ private:
   Token &expect_type(const TokenType &type, std::string on_fail);
   Token &advance();
 
+  ExprPtr parse_var_expr();
   ExprPtr parse_expression();
   ExprPtr parse_additive();
   ExprPtr parse_term();
@@ -33,12 +34,19 @@ private:
   ExprPtr parse_factor();
 
   StmtPtr parse_assign(AssignType type);
-  StmtPtr parse_array_creation(Token &ident);
-  StmtPtr parse_array_assignment(Token &ident);
+  StmtPtr parse_array_creation(std::string name, int line_number,
+                               std::optional<std::string> &type_name);
+  StmtPtr parse_array_assignment(ExprPtr target_val_expr);
   StmtPtr parse_loop();
   StmtPtr parse_if();
   StmtPtr parse_print_str();
   StmtPtr parse_print_val();
+  StmtPtr parse_define_struct();
+
+  // Types may contain [] characters, which dont lex
+  // into a single ident. this hadles this case and returns the string
+  // that represents a type
+  std::string parse_type_string();
 
 public:
   Parser(std::vector<Token> stream);

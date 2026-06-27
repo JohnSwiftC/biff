@@ -24,6 +24,7 @@ enum class TokenType {
   GEQ,
   OR,
   SEMICOLON,
+  COLON,
   LOOP,
   IF,
   NOT,
@@ -37,6 +38,9 @@ enum class TokenType {
   PRINT_STR,
   PRINT_VAL,
   DEF,
+  STRUCT,
+  COMMA,
+  DOT,
 };
 
 class Token {

@@ -58,6 +58,9 @@ std::ostream &operator<<(std::ostream &out, const Token &in) {
   case TokenType::SEMICOLON:
     out << "SEMICOLON (" << in.m_val << ')';
     break;
+  case TokenType::COLON:
+    out << "COLON (" << in.m_val << ')';
+    break;
   case TokenType::LOOP:
     out << "LOOP (" << in.m_val << ')';
     break;
@@ -97,6 +100,15 @@ std::ostream &operator<<(std::ostream &out, const Token &in) {
   case TokenType::DEF:
     out << "DEF";
     break;
+  case TokenType::STRUCT:
+    out << "STRUCT";
+    break;
+  case TokenType::COMMA:
+    out << "COMMA";
+    break;
+  case TokenType::DOT:
+    out << "DOT";
+    break;
   }
 
   return out;
@@ -112,7 +124,7 @@ bool Lexer::is_numeric(std::string_view word) {
 
 bool Lexer::is_punct(char c) {
   return c == ';' || c == '{' || c == '}' || c == '(' || c == ')' || c == '[' ||
-         c == ']' || c == '!';
+         c == ']' || c == '!' || c == ':' || c == ',' || c == '.';
 }
 
 TokenType Lexer::parse_word(std::string_view word) {
@@ -122,6 +134,8 @@ TokenType Lexer::parse_word(std::string_view word) {
 
   if (word == ";") {
     return TokenType::SEMICOLON;
+  } else if (word == ":") {
+    return TokenType::COLON;
   } else if (word == "{") {
     return TokenType::LBRACE;
   } else if (word == "}") {
@@ -174,6 +188,12 @@ TokenType Lexer::parse_word(std::string_view word) {
     return TokenType::PRINT_VAL;
   } else if (word == "def") {
     return TokenType::DEF;
+  } else if (word == "struct") {
+    return TokenType::STRUCT;
+  } else if (word == ",") {
+    return TokenType::COMMA;
+  } else if (word == ".") {
+    return TokenType::DOT;
   }
 
   if (is_numeric(word)) {

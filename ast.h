@@ -1,7 +1,9 @@
 #ifndef AST_H
 #define AST_H
 
+#include "types.h"
 #include <memory>
+#include <optional>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -40,20 +42,22 @@ struct Stmt {
 using ExprPtr = std::unique_ptr<Expr>;
 using StmtPtr = std::unique_ptr<Stmt>;
 
+// also handles struct field accesses in expressions
 struct VarExpr : Expr {
   std::string name;
+  std::vector<std::string> fields;
 
-  VarExpr(std::string val, int line_number);
+  VarExpr(std::string val, std::vector<std::string> fields, int line_number);
 
   void display() const override;
   ExprType get_type() const override;
 };
 
 struct ArrayVarExpr : Expr {
-  std::string name;
+  ExprPtr var_expr;
   ExprPtr index_expr;
 
-  ArrayVarExpr(std::string name, ExprPtr index_expr, int line_number);
+  ArrayVarExpr(ExprPtr var_expr, ExprPtr index_expr, int line_number);
 
   void display() const override;
   ExprType get_type() const override;
@@ -104,12 +108,13 @@ enum class AssignType {
 };
 
 struct AssignStmt : Stmt {
-
-  std::string name;
+  ExprPtr target_var_expr;
+  std::optional<std::string> type_name;
   ExprPtr val;
-  AssignType type;
+  AssignType assign_type;
 
-  AssignStmt(std::string name, ExprPtr val, AssignType type, int line_number);
+  AssignStmt(ExprPtr target_var_expr, std::optional<std::string> type_name,
+             ExprPtr val, AssignType assign_type, int line_number);
 
   void display() const override;
   void generate(std::ostream *out, Compiler *compiler) override;
@@ -156,7 +161,7 @@ struct PrintValStmt : Stmt {
 struct CreateArrayStmt : Stmt {
   std::string name;
   ExprPtr size_expr;
-  AssignType type;
+  AssignType assign_type;
 
   CreateArrayStmt(std::string name, ExprPtr size_expr, int line_number);
 
@@ -165,12 +170,28 @@ struct CreateArrayStmt : Stmt {
 };
 
 struct AssignArrayStmt : Stmt {
-  std::string name;
+  ExprPtr target_var_expr;
   ExprPtr index_expr;
   ExprPtr target_expr;
 
-  AssignArrayStmt(std::string name, ExprPtr index_expr, ExprPtr target_expr,
-                  int line_number);
+  AssignArrayStmt(ExprPtr target_vat_expr, ExprPtr index_expr,
+                  ExprPtr target_expr, int line_number);
+
+  void display() const override;
+  void generate(std::ostream *out, Compiler *compiler) override;
+};
+
+struct DefineStructStmt : Stmt {
+  struct Field {
+    std::string name;
+    std::string type;
+  };
+
+  std::string name;
+  std::vector<Field> fields;
+
+  DefineStructStmt(std::string name, std::vector<Field> fields,
+                   int line_number);
 
   void display() const override;
   void generate(std::ostream *out, Compiler *compiler) override;
