@@ -459,17 +459,23 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
 
   case AssignType::SET: {
 
+    if (target_var_expr->get_type() != ExprType::VAR) {
+      throw CompilerException(
+          line_number, "assignments may only happen on variable expressions");
+    }
+
+    VarExpr *var_expr = static_cast<VarExpr *>(target_var_expr.get());
+
     if (val->get_type() == ExprType::STRING) {
       throw CompilerException(
           val->line_number,
-          "attempted to redfine variable with a string literal: " + name);
+          "attempted to redfine variable with a string literal: " +
+              var_expr->name);
     }
 
     EvalResult result = eval(out, compiler, val.get());
 
-    // throws an exception if this name
-    // does not exist anywhere in the scope
-    size_t dest = compiler->get_var(name);
+    size_t dest = eval_var_expr(compiler, var_expr);
 
     switch (result.type) {
     case EvalType::ADDRESS: {
@@ -699,7 +705,16 @@ void CreateArrayStmt::generate(std::ostream *out, Compiler *compiler) {
 }
 
 void AssignArrayStmt::generate(std::ostream *out, Compiler *compiler) {
-  size_t base{compiler->get_var(name)};
+
+  if (target_var_expr->get_type() != ExprType::VAR) {
+    throw CompilerException(
+        target_var_expr->line_number,
+        "assignments can only be applied to variables expressions");
+  }
+
+  VarExpr *var_expr = static_cast<VarExpr *>(target_var_expr.get());
+
+  size_t base = eval_var_expr(compiler, var_expr);
   Scope &scope = compiler->get_scope();
 
   size_t snapshot{scope.get_next_free()};
