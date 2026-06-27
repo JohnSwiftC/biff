@@ -20,6 +20,7 @@ add_executable(biffc
     codegen.cpp
     compiler.cpp
     compexcept.cpp
+    types.cpp
 )
 target_compile_options(biffc PRIVATE ${WARN_FLAGS})
 
