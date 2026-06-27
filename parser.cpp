@@ -163,6 +163,7 @@ StmtPtr Parser::parse_assign(AssignType type) {
   if (!check_type(TokenType::COLON)) {
     type_name = std::nullopt;
   } else {
+    advance();
     type_name = parse_type_string();
   }
 

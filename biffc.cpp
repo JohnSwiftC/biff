@@ -1,4 +1,5 @@
 #include "ast.h"
+#include "compexcept.h"
 #include "compiler.h"
 #include "lexer.h"
 #include "parser.h"
@@ -45,11 +46,14 @@ int main(int argc, char **argv) {
 
   Parser parser{token_stream};
 
-  std::vector<StmtPtr> program = parser.parse_program();
-
-  Compiler compiler{std::move(program)};
-
-  compiler.generate_program(out);
+  try {
+    std::vector<StmtPtr> program = parser.parse_program();
+    Compiler compiler{std::move(program)};
+    compiler.generate_program(out);
+  } catch (CompilerException &e) {
+    std::cerr << e.what();
+    return 1;
+  }
 
   return 0;
 }
