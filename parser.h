@@ -34,9 +34,9 @@ private:
   ExprPtr parse_factor();
 
   StmtPtr parse_assign(AssignType type);
-  StmtPtr parse_array_creation(Token &ident,
+  StmtPtr parse_array_creation(std::string name, int line_number,
                                std::optional<std::string> &type_name);
-  StmtPtr parse_array_assignment(Token &ident);
+  StmtPtr parse_array_assignment(ExprPtr target_val_expr);
   StmtPtr parse_loop();
   StmtPtr parse_if();
   StmtPtr parse_print_str();

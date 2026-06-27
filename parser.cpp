@@ -3,6 +3,7 @@
 #include "compexcept.h"
 #include "lexer.h"
 
+#include <cassert>
 #include <memory>
 #include <optional>
 
@@ -147,10 +148,14 @@ ExprPtr Parser::parse_factor() {
 }
 
 StmtPtr Parser::parse_assign(AssignType type) {
-  Token &ident = expect_type(TokenType::IDENT, "Can't assign non ident");
+  ExprPtr target_var_expr = parse_var_expr();
+
+  assert(target_var_expr->get_type() == ExprType::VAR);
+
+  VarExpr *var_expr = static_cast<VarExpr *>(target_var_expr.get());
 
   if (check_type(TokenType::LBRACKET)) {
-    return parse_array_assignment(ident);
+    return parse_array_assignment(std::move(target_var_expr));
   }
 
   std::optional<std::string> type_name;
@@ -167,25 +172,32 @@ StmtPtr Parser::parse_assign(AssignType type) {
     // duct tape fix lol, dont want people trying to assign
     // random types to arrays which dont actually do anything,
     // so we just prop up the type and throw a compiler exception
-    // if this happens
-    return parse_array_creation(ident, type_name);
+    // if this happens. also, arrays can only be created with this method
+    if (var_expr->fields.size() != 0) {
+      throw CompilerException(
+          var_expr->line_number,
+          "arrays cannot be created on exisiting struct-type fields. either "
+          "define it in the struct type, or on a single variable");
+    }
+    return parse_array_creation(var_expr->name, var_expr->line_number,
+                                type_name);
   }
 
   ExprPtr expr = parse_expression();
 
   expect_type(TokenType::SEMICOLON, "missing semicolon");
 
-  return std::make_unique<AssignStmt>(ident.get_val(), std::move(type_name),
-                                      std::move(expr), type, ident.get_line());
+  return std::make_unique<AssignStmt>(std::move(target_var_expr),
+                                      std::move(type_name), std::move(expr),
+                                      type, target_var_expr->line_number);
 }
 
-StmtPtr Parser::parse_array_creation(Token &ident,
+StmtPtr Parser::parse_array_creation(std::string name, int line_number,
                                      std::optional<std::string> &type_name) {
 
   // duct tape escape hatch
   if (type_name) {
-    throw CompilerException(ident.get_line(),
-                            "arrays cannot be assigned a type");
+    throw CompilerException(line_number, "arrays cannot be assigned a type");
   }
 
   expect_type(TokenType::LBRACKET,
@@ -196,11 +208,11 @@ StmtPtr Parser::parse_array_creation(Token &ident,
   expect_type(TokenType::RBRACKET, "no closing RBRACKET on array declaration");
   expect_type(TokenType::SEMICOLON, "missing semicolon");
 
-  return std::make_unique<CreateArrayStmt>(
-      ident.get_val(), std::move(size_expr), ident.get_line());
+  return std::make_unique<CreateArrayStmt>(std::move(name),
+                                           std::move(size_expr), line_number);
 }
 
-StmtPtr Parser::parse_array_assignment(Token &ident) {
+StmtPtr Parser::parse_array_assignment(ExprPtr target_var_expr) {
   expect_type(TokenType::LBRACKET, "failed LBRACKET in index");
 
   ExprPtr index_expr = parse_expression();
@@ -212,9 +224,9 @@ StmtPtr Parser::parse_array_assignment(Token &ident) {
 
   expect_type(TokenType::SEMICOLON, "missing semicolon");
 
-  return std::make_unique<AssignArrayStmt>(ident.get_val(),
-                                           std::move(index_expr),
-                                           std::move(target), ident.get_line());
+  return std::make_unique<AssignArrayStmt>(
+      std::move(target_var_expr), std::move(index_expr), std::move(target),
+      target_var_expr->line_number);
 }
 
 StmtPtr Parser::parse_loop() {
