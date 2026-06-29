@@ -163,7 +163,8 @@ struct CreateArrayStmt : Stmt {
   ExprPtr size_expr;
   AssignType assign_type;
 
-  CreateArrayStmt(std::string name, ExprPtr size_expr, int line_number);
+  CreateArrayStmt(std::string name, ExprPtr size_expr, AssignType assign_type,
+                  int line_number);
 
   void display() const override;
   void generate(std::ostream *out, Compiler *compiler) override;

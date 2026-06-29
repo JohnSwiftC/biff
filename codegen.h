@@ -27,13 +27,16 @@ struct EvalResult {
 
 // Evaluates a var_expr with its variable name to resolve a base address,
 // and uses its fields to find the true address being referenced by
-// the expression
-size_t eval_var_expr(Compiler *compiler, Expr *var_expr);
+// the expression. When out_type is non-null, it receives the
+// fully-resolved type of the referenced variable/field.
+size_t eval_var_expr(Compiler *compiler, Expr *var_expr,
+                     Type **out_type = nullptr);
 
 // Recursively evaluates an expression tree, emitting any code
 // needed to compute it. Temps it allocates are reclaimed by the
 // caller with Scope::set_next_free once the result is consumed
 EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr);
 EvalResult eval_unary(std::ostream *out, Compiler *compiler, UnaryExpr *unary);
+void handle_new_struct(Compiler *compiler, VarExpr* var_expr, Type* struct_type, Expr* val_expr);
 
 #endif

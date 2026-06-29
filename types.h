@@ -15,7 +15,7 @@ struct TypeException : std::exception {
   virtual const char *what() const noexcept;
 };
 
-enum class TypeClass { BUILTIN, USERDEF };
+enum class TypeClass { BUILTIN, USERDEF, ARRAY };
 
 struct Type {
   size_t size;
