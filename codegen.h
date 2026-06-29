@@ -35,5 +35,6 @@ size_t eval_var_expr(Compiler *compiler, Expr *var_expr);
 // caller with Scope::set_next_free once the result is consumed
 EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr);
 EvalResult eval_unary(std::ostream *out, Compiler *compiler, UnaryExpr *unary);
+void handle_new_struct(Compiler *compiler, VarExpr* var_expr, Type* struct_type, Expr* val_expr);
 
 #endif

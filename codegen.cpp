@@ -374,6 +374,26 @@ EvalResult eval_unary(std::ostream *out, Compiler *compiler, UnaryExpr *unary) {
   throw std::runtime_error("magic unknown EvalType reached in parse_unary");
 }
 
+void handle_new_struct(Compiler *compiler, VarExpr *var_expr, Type *struct_type, Expr *val_expr) {
+  Scope& scope = compiler->get_scope();
+  if (scope.contains_var(var_expr->name)) {
+    throw CompilerException(val_expr->line_number, "attempted to redefine a variable of struct type in the top level scope");
+  }
+
+  if (val_expr->get_type() != ExprType::NUMBER) {
+    throw CompilerException(val_expr->line_number, "structs are created by setting them equal to 0");
+  }
+
+  auto number_expr = static_cast<NumberExpr *>(val_expr);
+
+  if (number_expr->val != "0") {
+    throw CompilerException(number_expr->line_number, "structs must be set to zero on creation");
+  }
+
+  scope.set_var(var_expr->name, Scope::Variable { scope.get_next_free(), struct_type });
+  scope.bump_next_free(struct_type->size);
+}
+
 void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
 
   // top level scope
@@ -424,6 +444,18 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
 
       *out << "INSERT_STRING: " << dest << ", " << string_expr->val << '\n';
       return;
+    }
+
+    if (type_name) {
+      if (compiler->contains_type(*type_name)) {
+        Type *type = compiler->get_type(*type_name);
+        if (type->type_class == TypeClass::USERDEF) {
+          handle_new_struct(compiler, var_expr, type, val.get());
+          return;
+        }
+      } else {
+        throw CompilerException(line_number, "type: " + *type_name + " is not a struct type");
+      }
     }
 
     EvalResult result = eval(out, compiler, val.get());
@@ -718,7 +750,7 @@ void AssignArrayStmt::generate(std::ostream *out, Compiler *compiler) {
         "assignments can only be applied to variables expressions");
   }
 
-  VarExpr *var_expr = static_cast<VarExpr *>(target_var_expr.get());
+  const auto var_expr = static_cast<VarExpr *>(target_var_expr.get());
 
   size_t base = eval_var_expr(compiler, var_expr);
   Scope &scope = compiler->get_scope();
@@ -797,20 +829,20 @@ void DefineStructStmt::generate(std::ostream *out, Compiler *compiler) {
 
   auto new_struct_type = std::make_unique<StructType>();
 
-  for (Field field : fields) {
-    if (!compiler->contains_type(field.type)) {
+  for (auto [field_name, type] : fields) {
+    if (!compiler->contains_type(type)) {
       throw CompilerException(line_number,
-                              field.type + " is not a currently defined type");
+                              type + " is not a currently defined type");
     }
 
-    Type *real_type = compiler->get_type(field.type);
+    Type *real_type = compiler->get_type(type);
 
-    new_struct_type->add_field(std::move(field.name), real_type);
+    new_struct_type->add_field(std::move(field_name), real_type);
   }
 
   try {
     compiler->add_type(name, std::move(new_struct_type));
-  } catch (TypeException e) {
+  } catch (TypeException& e) {
     throw CompilerException(line_number, std::move(e.message));
   }
 }

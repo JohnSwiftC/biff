@@ -35,7 +35,8 @@ private:
 
   StmtPtr parse_assign(AssignType type);
   StmtPtr parse_array_creation(std::string name, int line_number,
-                               std::optional<std::string> &type_name);
+                               std::optional<std::string> &type_name,
+                               AssignType assign_type);
   StmtPtr parse_array_assignment(ExprPtr target_val_expr);
   StmtPtr parse_loop();
   StmtPtr parse_if();

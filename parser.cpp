@@ -181,7 +181,7 @@ StmtPtr Parser::parse_assign(AssignType type) {
           "define it in the struct type, or on a single variable");
     }
     return parse_array_creation(var_expr->name, var_expr->line_number,
-                                type_name);
+                                type_name, type);
   }
 
   ExprPtr expr = parse_expression();
@@ -194,7 +194,8 @@ StmtPtr Parser::parse_assign(AssignType type) {
 }
 
 StmtPtr Parser::parse_array_creation(std::string name, int line_number,
-                                     std::optional<std::string> &type_name) {
+                                     std::optional<std::string> &type_name,
+                                     AssignType assign_type) {
 
   // duct tape escape hatch
   if (type_name) {
@@ -209,8 +210,8 @@ StmtPtr Parser::parse_array_creation(std::string name, int line_number,
   expect_type(TokenType::RBRACKET, "no closing RBRACKET on array declaration");
   expect_type(TokenType::SEMICOLON, "missing semicolon");
 
-  return std::make_unique<CreateArrayStmt>(std::move(name),
-                                           std::move(size_expr), line_number);
+  return std::make_unique<CreateArrayStmt>(
+      std::move(name), std::move(size_expr), assign_type, line_number);
 }
 
 StmtPtr Parser::parse_array_assignment(ExprPtr target_var_expr) {
