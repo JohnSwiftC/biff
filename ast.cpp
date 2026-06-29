@@ -7,7 +7,7 @@ Stmt::Stmt(int line_number) : line_number{line_number} {}
 
 VarExpr::VarExpr(std::string name, std::vector<std::string> fields,
                  int line_number)
-    : Expr(line_number), name{std::move(name)} {}
+    : Expr(line_number), name{std::move(name)}, fields{std::move(fields)} {}
 void VarExpr::display() const { std::cout << "VarExpr (" << name << ")"; }
 ExprType VarExpr::get_type() const { return ExprType::VAR; }
 
@@ -122,9 +122,9 @@ void PrintValStmt::display() const {
 }
 
 CreateArrayStmt::CreateArrayStmt(std::string name, ExprPtr size_expr,
-                                 int line_number)
+                                 AssignType assign_type, int line_number)
     : Stmt(line_number), name{std::move(name)},
-      size_expr{std::move(size_expr)} {}
+      size_expr{std::move(size_expr)}, assign_type{assign_type} {}
 void CreateArrayStmt::display() const {
   std::cout << "CreateArrayStmt (";
   size_expr->display();
