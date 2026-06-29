@@ -13,7 +13,7 @@ TypeClass Type::get_type_class() const { return type_class; }
 IntegerType::IntegerType() : Type(1, TypeClass::BUILTIN) {}
 
 ArrayType::ArrayType(size_t array_length)
-    : Type(array_length + 4, TypeClass::BUILTIN) {}
+    : Type(array_length + 4, TypeClass::ARRAY) {}
 
 StructType::StructType() : Type(0, TypeClass::USERDEF), fields{} {}
 void StructType::add_field(std::string name, Type *type) {

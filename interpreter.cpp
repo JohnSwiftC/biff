@@ -3,6 +3,7 @@
 #include <iostream>
 #include <istream>
 #include <stack>
+#include <string>
 #include <vector>
 
 void run_bf(const std::string &program) {

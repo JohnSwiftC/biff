@@ -27,8 +27,10 @@ struct EvalResult {
 
 // Evaluates a var_expr with its variable name to resolve a base address,
 // and uses its fields to find the true address being referenced by
-// the expression
-size_t eval_var_expr(Compiler *compiler, Expr *var_expr);
+// the expression. When out_type is non-null, it receives the
+// fully-resolved type of the referenced variable/field.
+size_t eval_var_expr(Compiler *compiler, Expr *var_expr,
+                     Type **out_type = nullptr);
 
 // Recursively evaluates an expression tree, emitting any code
 // needed to compute it. Temps it allocates are reclaimed by the

@@ -10,7 +10,7 @@
 #include <stdexcept>
 
 // returns the address being referred too by a varexpr
-size_t eval_var_expr(Compiler *compiler, Expr *expr) {
+size_t eval_var_expr(Compiler *compiler, Expr *expr, Type **out_type) {
 
   if (expr->get_type() != ExprType::VAR) {
     throw CompilerException(
@@ -39,7 +39,7 @@ size_t eval_var_expr(Compiler *compiler, Expr *expr) {
   }
 
   for (const std::string &field : var_expr->fields) {
-    if (curr_type->type_class == TypeClass::BUILTIN) {
+    if (curr_type->type_class != TypeClass::USERDEF) {
       throw CompilerException(var_expr->line_number,
                               "illegal field access in non-struct type");
     }
@@ -54,6 +54,10 @@ size_t eval_var_expr(Compiler *compiler, Expr *expr) {
     StructType::Field &field_data = struct_type->fields.at(field);
     curr_type = field_data.type;
     curr_addr += field_data.offset;
+  }
+
+  if (out_type) {
+    *out_type = curr_type;
   }
 
   return curr_addr;
@@ -99,7 +103,13 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
     ArrayVarExpr *array_var_expr = static_cast<ArrayVarExpr *>(expr);
 
     Scope &scope = compiler->get_scope();
-    size_t base{eval_var_expr(compiler, array_var_expr->var_expr.get())};
+    Type *base_type = nullptr;
+    size_t base{
+        eval_var_expr(compiler, array_var_expr->var_expr.get(), &base_type)};
+    if (base_type->type_class != TypeClass::ARRAY) {
+      throw CompilerException(array_var_expr->line_number,
+                              "cannot index into a non-array type");
+    }
     size_t dest{scope.get_next_free()};
 
     EvalResult index = eval(out, compiler, array_var_expr->index_expr.get());
@@ -752,7 +762,12 @@ void AssignArrayStmt::generate(std::ostream *out, Compiler *compiler) {
 
   const auto var_expr = static_cast<VarExpr *>(target_var_expr.get());
 
-  size_t base = eval_var_expr(compiler, var_expr);
+  Type *base_type = nullptr;
+  size_t base = eval_var_expr(compiler, var_expr, &base_type);
+  if (base_type->type_class != TypeClass::ARRAY) {
+    throw CompilerException(var_expr->line_number,
+                            "cannot index into a non-array type");
+  }
   Scope &scope = compiler->get_scope();
 
   size_t snapshot{scope.get_next_free()};
@@ -829,20 +844,20 @@ void DefineStructStmt::generate(std::ostream *out, Compiler *compiler) {
 
   auto new_struct_type = std::make_unique<StructType>();
 
-  for (auto [field_name, type] : fields) {
-    if (!compiler->contains_type(type)) {
-      throw CompilerException(line_number,
-                              type + " is not a currently defined type");
+  try {
+    for (auto [field_name, type] : fields) {
+      if (!compiler->contains_type(type)) {
+        throw CompilerException(line_number,
+                                type + " is not a currently defined type");
+      }
+
+      Type *real_type = compiler->get_type(type);
+
+      new_struct_type->add_field(std::move(field_name), real_type);
     }
 
-    Type *real_type = compiler->get_type(type);
-
-    new_struct_type->add_field(std::move(field_name), real_type);
-  }
-
-  try {
     compiler->add_type(name, std::move(new_struct_type));
-  } catch (TypeException& e) {
+  } catch (TypeException &e) {
     throw CompilerException(line_number, std::move(e.message));
   }
 }
