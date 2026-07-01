@@ -42,6 +42,8 @@ enum class TokenType {
   STRUCT,
   COMMA,
   DOT,
+  TRUE,
+  FALSE,
 };
 
 class Token {
