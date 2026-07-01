@@ -162,7 +162,7 @@ TokenType Lexer::parse_word(std::string_view word) {
     return TokenType::LEQ;
   } else if (word == ">=") {
     return TokenType::GEQ;
-  } else if (word == "||" || word == "or") {
+  } else if (word == "||") {
     return TokenType::OR;
   } else if (word == "+") {
     return TokenType::ADD;

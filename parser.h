@@ -28,6 +28,7 @@ private:
 
   ExprPtr parse_var_expr();
   ExprPtr parse_expression();
+  ExprPtr parse_comparison();
   ExprPtr parse_additive();
   ExprPtr parse_term();
   ExprPtr parse_unary();

@@ -61,6 +61,20 @@ ExprPtr Parser::parse_var_expr() {
 }
 
 ExprPtr Parser::parse_expression() {
+  ExprPtr left = parse_comparison();
+
+  while (check_type(TokenType::OR)) {
+    Token &token = advance();
+    std::string op = token.get_val();
+    ExprPtr right = parse_comparison();
+    left = std::make_unique<BinaryExpr>(std::move(op), std::move(left),
+                                        std::move(right), token.get_line());
+  }
+
+  return left;
+}
+
+ExprPtr Parser::parse_comparison() {
   ExprPtr left = parse_additive();
 
   while (check_type(TokenType::EQ) || check_type(TokenType::NEQ) ||
