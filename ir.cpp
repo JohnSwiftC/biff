@@ -564,19 +564,66 @@ void IRFileWriter::greater_or_eq_const(size_t a, unsigned char val,
 void IRFileWriter::or_op(size_t a, size_t b) { add(a, b); }
 void IRFileWriter::or_const(size_t a, unsigned char val) { add_const(a, val); }
 
-void IRFileWriter::and_op(size_t a, size_t b) {
-  shift(0, a);
+void IRFileWriter::and_op(size_t a, size_t b, size_t dump) {
+  size_t x = dump;
+  size_t y = dump + 1;
+  size_t z = dump + 2;
+
+  add(x, a);
+  add(y, b);
+
+  shift(0, x);
   m_out << "[";
-  shift(a, b);
+  shift(x, y);
   m_out << "[";
-  shift(b, 0);
+  shift(y, z);
   m_out << "+";
-  shift(0, b);
+  shift(z, y);
   m_out << "-]";
-  shift(b, a);
+  shift(y, x);
   m_out << "-]";
-  shift(a, b);
+  shift(x, y);
   m_out << "[-]";
+
+  shift(y, 0);
+
+  mov(x, 0);
+  mov(y, 0);
+  mov(a, 0);
+
+  add(a, z);
+  mov(z, 0);
+}
+
+void IRFileWriter::and_const(size_t a, unsigned char val, size_t dump) {
+  size_t x = dump;
+  size_t y = dump + 1;
+  size_t z = dump + 2;
+
+  add(x, a);
+  mov(y, val);
+
+  shift(0, x);
+  m_out << "[";
+  shift(x, y);
+  m_out << "[";
+  shift(y, z);
+  m_out << "+";
+  shift(z, y);
+  m_out << "-]";
+  shift(y, x);
+  m_out << "-]";
+  shift(x, y);
+  m_out << "[-]";
+
+  shift(y, 0);
+
+  mov(x, 0);
+  mov(y, 0);
+  mov(a, 0);
+
+  add(a, z);
+  mov(z, 0);
 }
 
 void IRFileWriter::div(size_t a, size_t b, size_t dump) {
