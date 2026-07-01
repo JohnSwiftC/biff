@@ -23,6 +23,7 @@ enum class TokenType {
   LEQ,
   GEQ,
   OR,
+  AND,
   SEMICOLON,
   COLON,
   LOOP,

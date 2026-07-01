@@ -44,7 +44,10 @@ std::ostream &operator<<(std::ostream &out, const Token &in) {
     out << "GEQ (" << in.m_val << ')';
     break;
   case TokenType::OR:
-    out << "OR (" << in.m_val << ')';
+    out << "OR";
+    break;
+  case TokenType::AND:
+    out << "AND";
     break;
   case TokenType::IDENT:
     out << "IDENT (" << in.m_val << ')';
@@ -164,6 +167,8 @@ TokenType Lexer::parse_word(std::string_view word) {
     return TokenType::GEQ;
   } else if (word == "||") {
     return TokenType::OR;
+  } else if (word == "&&") {
+    return TokenType::AND;
   } else if (word == "+") {
     return TokenType::ADD;
   } else if (word == "-") {
