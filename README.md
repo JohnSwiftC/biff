@@ -20,11 +20,20 @@ let hello = "Hello, World!";
 hello = "Hi!"; // compiler error
 ```
 
+
+As seen later, variables can also be given an explicit type in most cases,
+
+```rust
+let my_integer: Integer = 12;
+```
+
 ## Arrays
 
 Arrays consist of 8 bit integers as well, and the array's size must be able to be evaluated at compile time. Arrays can then be dynamically accessed.
 
 > Note: a string is is also an array.
+
+> Note: currently, biff only supports Integer array types
 
 ```rust
 let my_array = [100]; // an array of size 100
@@ -33,6 +42,27 @@ let my_array_two = [25 * 4]; // also an array of size 100
 my_array[1] = 2;
 my_array_two[my_array[1]] = 4;
 ```
+
+## Structs and Types
+
+biff has two built-in types: `Integer` and `[size]`, which represents a sized `Integer` array.
+
+```rust
+struct MyStruct {
+  Integer a, // integer typed field
+  [50] b, // integer array field of size 50
+}
+
+struct Composed {
+  MyStruct a, // field of type MyStruct
+}
+
+// Structs when defined must be set to 0. Otherwise results in
+// a compiler error
+let instance: Composed = 0;
+```
+
+Structs are accessed the same way they would be in any C-like language, with the dot syntax.
 
 ## Arithmetic and Comparison Operators
 
