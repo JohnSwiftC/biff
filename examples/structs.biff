@@ -1,0 +1,28 @@
+struct Data {
+  Integer a,
+  Integer b,
+  [50] c,
+}
+
+struct Container {
+  Data data,
+  Integer val,
+}
+
+let my_container: Container = 0;
+
+my_container.data.a = 1;
+my_container.data.b = 2;
+my_container.data.c[10] = 3;
+
+my_container.val = 4;
+
+let newline = "\n";
+
+print_val(my_container.data.a);
+print_str(newline);
+print_val(my_container.data.b);
+print_str(newline);
+print_val(my_container.data.c[10]);
+print_str(newline);
+print_val(my_container.val);
