@@ -78,6 +78,8 @@ let math = (a + b) * (1 + b);
 
 As shown, expressions can also be grouped with parentheses. Also note that these operators must be separated by white-space, with the exceptions being grouping symbols like `(` and `)`, or unary operators, like `!`.
 
+Biff also provides sugar for 1 and 0, which can be written as `true` or `false` respectively.
+
 ## If Statements
 
 If statements can be evaluated against any expression, including sole variables. Note, when evaluating against a variable alone, an if statement will not modify it (see loops, which DO modify single variable expressions).
