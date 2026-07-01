@@ -135,10 +135,12 @@ ExprPtr Parser::parse_factor() {
   const Token &token = peek();
 
   if (check_type(TokenType::TRUE)) {
+    advance();
     return std::make_unique<NumberExpr>("1", token.get_line());
   }
 
   if (check_type(TokenType::FALSE)) {
+    advance();
     return std::make_unique<NumberExpr>("0", token.get_line());
   }
 

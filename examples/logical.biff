@@ -4,7 +4,7 @@ let c = 0;
 
 let newline = "\n";
 if (a && b) {
-  print_val(1);
+  print_val(true);
   print_str(newline);
 }
 
@@ -21,6 +21,11 @@ if (1 && a) {
 if (1 && 2) {
   print_val(4);
   print_str(newline);
+}
+
+if (a && true) {
+    print_val(5);
+    print_str(newline);
 }
 
 let line = "Values:\n";
