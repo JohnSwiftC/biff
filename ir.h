@@ -111,6 +111,12 @@ public:
   void greater_or_eq(size_t a, size_t b, size_t flag);
   void greater_or_eq_const(size_t a, unsigned char val, size_t flag);
 
+  void or_op(size_t a, size_t b);
+  void or_const(size_t a, unsigned char val);
+
+  void and_op(size_t a, size_t b);
+  void and_const(size_t a, unsigned char val);
+
   // This is very clever, and is taken from
   // an esolang wiki algorithm. Finds both the division
   // and modulus in a divion

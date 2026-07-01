@@ -229,8 +229,6 @@ void IRFileWriter::mul_const(size_t dest, unsigned char val, size_t dump) {
   endloop(counter_one);
 }
 
-// div hopefully
-
 // Set addr 0 to one,
 // if there is a value in addr,
 // change addr 0 to zero, and set addr to 0
@@ -561,6 +559,24 @@ void IRFileWriter::greater_or_eq_const(size_t a, unsigned char val,
   m_out << "[<+>-]";
 
   shift(flag + 1, 0);
+}
+
+void IRFileWriter::or_op(size_t a, size_t b) { add(a, b); }
+void IRFileWriter::or_const(size_t a, unsigned char val) { add_const(a, val); }
+
+void IRFileWriter::and_op(size_t a, size_t b) {
+  shift(0, a);
+  m_out << "[";
+  shift(a, b);
+  m_out << "[";
+  shift(b, 0);
+  m_out << "+";
+  shift(0, b);
+  m_out << "-]";
+  shift(b, a);
+  m_out << "-]";
+  shift(a, b);
+  m_out << "[-]";
 }
 
 void IRFileWriter::div(size_t a, size_t b, size_t dump) {

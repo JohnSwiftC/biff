@@ -226,6 +226,18 @@ void compile_line(IRFileWriter &w, const std::string &raw) {
     require(args, 3, "greater_or_eq_const");
     w.greater_or_eq_const(parse_addr(args[0]), parse_byte(args[1]),
                           parse_addr(args[2]));
+  } else if (name == "or") {
+    require(args, 2, "or");
+    w.or_op(parse_addr(args[0]), parse_addr(args[1]));
+  } else if (name == "or_const") {
+    require(args, 2, "or_const");
+    w.or_const(parse_addr(args[0]), parse_byte(args[1]));
+  } else if (name == "and") {
+    require(args, 2, "and");
+    w.and_op(parse_addr(args[0]), parse_addr(args[1]));
+  } else if (name == "and_const") {
+    require(args, 2, "and_const");
+    w.and_const(parse_addr(args[0]), parse_byte(args[1]));
   } else if (name == "div_const") {
     require(args, 3, "div_const");
     w.div_const(parse_addr(args[0]), parse_byte(args[1]), parse_addr(args[2]));
