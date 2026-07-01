@@ -63,7 +63,7 @@ ExprPtr Parser::parse_var_expr() {
 ExprPtr Parser::parse_expression() {
   ExprPtr left = parse_comparison();
 
-  while (check_type(TokenType::OR)) {
+  while (check_type(TokenType::OR) || check_type(TokenType::AND)) {
     Token &token = advance();
     std::string op = token.get_val();
     ExprPtr right = parse_comparison();

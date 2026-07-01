@@ -192,6 +192,14 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
       return EvalResult{EvalType::CONST, left.val <= right.val};
     }
 
+    if (bin_expr->op == "||") {
+      return EvalResult{EvalType::CONST, left.val || right.val};
+    }
+
+    if (bin_expr->op == "&&") {
+      return EvalResult{EvalType::CONST, left.val && right.val};
+    }
+
     throw CompilerException(bin_expr->line_number,
                             "unaccounted operator in const eval: " +
                                 bin_expr->op);
@@ -265,6 +273,8 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
       *out << "MOV: " << acc << ", 0\n";
       *out << "ADD: " << acc << ", " << dump << '\n';
       *out << "MOV: " << dump << ", 0\n";
+    } else if (bin_expr->op == "||") {
+      *out << "ADD_CONST: " << acc << ", " << right.val << '\n';
     } else {
       throw CompilerException(bin_expr->line_number,
                               "unaccounted operator in eval: " + bin_expr->op);
@@ -312,6 +322,8 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
       *out << "MOV: " << acc << ", " << "0\n";
       *out << "ADD: " << acc << ", " << dump << '\n';
       *out << "MOV: " << dump << ", " << "0\n";
+    } else if (bin_expr->op == "||") {
+      *out << "ADD: " << acc << ", " << right.val << '\n';
     } else {
       throw CompilerException(bin_expr->line_number,
                               "unaccounted operator in eval: " + bin_expr->op);
@@ -384,23 +396,29 @@ EvalResult eval_unary(std::ostream *out, Compiler *compiler, UnaryExpr *unary) {
   throw std::runtime_error("magic unknown EvalType reached in parse_unary");
 }
 
-void handle_new_struct(Compiler *compiler, VarExpr *var_expr, Type *struct_type, Expr *val_expr) {
-  Scope& scope = compiler->get_scope();
+void handle_new_struct(Compiler *compiler, VarExpr *var_expr, Type *struct_type,
+                       Expr *val_expr) {
+  Scope &scope = compiler->get_scope();
   if (scope.contains_var(var_expr->name)) {
-    throw CompilerException(val_expr->line_number, "attempted to redefine a variable of struct type in the top level scope");
+    throw CompilerException(val_expr->line_number,
+                            "attempted to redefine a variable of struct type "
+                            "in the top level scope");
   }
 
   if (val_expr->get_type() != ExprType::NUMBER) {
-    throw CompilerException(val_expr->line_number, "structs are created by setting them equal to 0");
+    throw CompilerException(val_expr->line_number,
+                            "structs are created by setting them equal to 0");
   }
 
   auto number_expr = static_cast<NumberExpr *>(val_expr);
 
   if (number_expr->val != "0") {
-    throw CompilerException(number_expr->line_number, "structs must be set to zero on creation");
+    throw CompilerException(number_expr->line_number,
+                            "structs must be set to zero on creation");
   }
 
-  scope.set_var(var_expr->name, Scope::Variable { scope.get_next_free(), struct_type });
+  scope.set_var(var_expr->name,
+                Scope::Variable{scope.get_next_free(), struct_type});
   scope.bump_next_free(struct_type->size);
 }
 
@@ -464,7 +482,8 @@ void AssignStmt::generate(std::ostream *out, Compiler *compiler) {
           return;
         }
       } else {
-        throw CompilerException(line_number, "type: " + *type_name + " is not a struct type");
+        throw CompilerException(line_number, "type: " + *type_name +
+                                                 " is not a struct type");
       }
     }
 
