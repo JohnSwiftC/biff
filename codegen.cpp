@@ -274,7 +274,9 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
       *out << "ADD: " << acc << ", " << dump << '\n';
       *out << "MOV: " << dump << ", 0\n";
     } else if (bin_expr->op == "||") {
-      *out << "ADD_CONST: " << acc << ", " << right.val << '\n';
+      *out << "OR_CONST: " << acc << ", " << right.val << '\n';
+    } else if (bin_expr->op == "&&") {
+      *out << "AND_CONST: " << acc << ", " << right.val << ", " << dump << '\n';
     } else {
       throw CompilerException(bin_expr->line_number,
                               "unaccounted operator in eval: " + bin_expr->op);
@@ -323,7 +325,9 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
       *out << "ADD: " << acc << ", " << dump << '\n';
       *out << "MOV: " << dump << ", " << "0\n";
     } else if (bin_expr->op == "||") {
-      *out << "ADD: " << acc << ", " << right.val << '\n';
+      *out << "OR: " << acc << ", " << right.val << '\n';
+    } else if (bin_expr->op == "&&") {
+      *out << "AND: " << acc << ", " << right.val << ", " << dump << '\n';
     } else {
       throw CompilerException(bin_expr->line_number,
                               "unaccounted operator in eval: " + bin_expr->op);

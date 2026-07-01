@@ -1,0 +1,32 @@
+let a = 12;
+let b = 1;
+let c = 0;
+
+let newline = "\n";
+if (a && b) {
+  print_val(1);
+  print_str(newline);
+}
+
+if (a && c) {
+  print_val(2);
+  print_str(newline);
+}
+
+if (1 && a) {
+  print_val(3);
+  print_str(newline);
+}
+
+if (1 && 2) {
+  print_val(4);
+  print_str(newline);
+}
+
+let line = "Values:\n";
+print_str(line);
+print_val(a);
+print_str(newline);
+print_val(b);
+print_str(newline);
+print_val(c);
