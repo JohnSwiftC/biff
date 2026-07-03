@@ -50,6 +50,8 @@ private:
   // that represents a type
   std::string parse_type_string();
 
+  StmtPtr parse_function_definition();
+
 public:
   Parser(std::vector<Token> stream);
 

@@ -198,4 +198,15 @@ struct DefineStructStmt : Stmt {
   void generate(std::ostream *out, Compiler *compiler) override;
 };
 
+struct DefineFunctionStmt : Stmt {
+  std::string name;
+  std::vector<StmtPtr> body;
+
+  DefineFunctionStmt(std::string name, std::vector<StmtPtr> body,
+                     int line_number);
+
+  void display() const override;
+  void generate(std::ostream *out, Compiler *compiler) override;
+};
+
 #endif
