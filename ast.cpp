@@ -123,8 +123,8 @@ void PrintValStmt::display() const {
 
 CreateArrayStmt::CreateArrayStmt(std::string name, ExprPtr size_expr,
                                  AssignType assign_type, int line_number)
-    : Stmt(line_number), name{std::move(name)},
-      size_expr{std::move(size_expr)}, assign_type{assign_type} {}
+    : Stmt(line_number), name{std::move(name)}, size_expr{std::move(size_expr)},
+      assign_type{assign_type} {}
 void CreateArrayStmt::display() const {
   std::cout << "CreateArrayStmt (";
   size_expr->display();
@@ -152,6 +152,22 @@ void DefineStructStmt::display() const {
 
   for (const Field &field : fields) {
     std::cout << field.name << " " << field.type << ", ";
+  }
+
+  std::cout << ")";
+}
+
+DefineFunctionStmt::DefineFunctionStmt(std::string name,
+                                       std::vector<StmtPtr> body,
+                                       int line_number)
+    : Stmt(line_number), name{std::move(name)}, body{std::move(body)} {}
+void DefineFunctionStmt::display() const {
+  std::cout << "DefineFunctionStmt (";
+  std::cout << name << ": ";
+
+  for (const StmtPtr &stmt : body) {
+    stmt->display();
+    std::cout << ", ";
   }
 
   std::cout << ")";
