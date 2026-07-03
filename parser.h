@@ -44,13 +44,12 @@ private:
   StmtPtr parse_print_str();
   StmtPtr parse_print_val();
   StmtPtr parse_define_struct();
+  StmtPtr parse_function_definition();
 
   // Types may contain [] characters, which dont lex
   // into a single ident. this hadles this case and returns the string
   // that represents a type
   std::string parse_type_string();
-
-  StmtPtr parse_function_definition();
 
 public:
   Parser(std::vector<Token> stream);

@@ -339,6 +339,21 @@ StmtPtr Parser::parse_define_struct() {
       std::move(ident.get_val()), std::move(fields), ident.get_line());
 }
 
+StmtPtr Parser::parse_function_definition() {
+  advance(); // def token
+
+  const Token &name_ident =
+      expect_type(TokenType::IDENT, "expected function name");
+  std::string name = name_ident.get_val();
+
+  expect_type(TokenType::LBRACE, "expected opening brace");
+
+  std::vector<StmtPtr> body = parse_program();
+
+  return std::make_unique<DefineFunctionStmt>(std::move(name), std::move(body),
+                                              name_ident.get_line());
+}
+
 std::string Parser::parse_type_string() {
 
   if (check_type(TokenType::LBRACKET)) {
@@ -395,6 +410,10 @@ std::vector<StmtPtr> Parser::parse_program() {
 
     case TokenType::STRUCT:
       program.push_back(parse_define_struct());
+      break;
+
+    case TokenType::DEF:
+      program.push_back(parse_function_definition());
       break;
 
       // This only breaks parsing
