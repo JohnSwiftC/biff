@@ -246,9 +246,13 @@ void Lexer::feed(std::string line) {
       if (word == "!" && i < line.length() && line[i] == '=') {
         word += line[i++];
       }
-    } else if (line[i] == '"') {
+    } else if (line[i] == '"' || line[i] == '\'') {
+      char open_quote = line[i];
       word += line[i++];
-      while (i < line.length() && line[i] != '"') {
+      while (i < line.length() && line[i] != open_quote) {
+        if (line[i] == '\\' && i + 1 < line.length()) {
+          word += line[i++];
+        }
         word += line[i++];
       }
       if (i < line.length()) {

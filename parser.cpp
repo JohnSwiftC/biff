@@ -148,6 +148,46 @@ ExprPtr Parser::parse_factor() {
     return std::make_unique<NumberExpr>(advance().get_val(), token.get_line());
   }
 
+  if (check_type(TokenType::CHAR)) {
+    const std::string &token_val = advance().get_val();
+    std::string char_val = token_val.substr(1, token_val.size() - 2);
+
+    unsigned char value;
+    if (char_val.size() == 1 && char_val[0] != '\\') {
+      value = static_cast<unsigned char>(char_val[0]);
+    } else if (char_val.size() == 2 && char_val[0] == '\\') {
+      switch (char_val[1]) {
+      case 'n':
+        value = '\n';
+        break;
+      case 't':
+        value = '\t';
+        break;
+      case 'r':
+        value = '\r';
+        break;
+      case '0':
+        value = '\0';
+        break;
+      case '\\':
+        value = '\\';
+        break;
+      case '\'':
+        value = '\'';
+        break;
+      default:
+        throw CompilerException(token.get_line(),
+                                "unknown escape sequence in char literal");
+      }
+    } else {
+      throw CompilerException(token.get_line(),
+                              "char literal must be exactly one character");
+    }
+
+    return std::make_unique<NumberExpr>(std::to_string(value),
+                                        token.get_line());
+  }
+
   if (check_type(TokenType::STRING)) {
     return std::make_unique<StringExpr>(advance().get_val(), token.get_line());
   }
