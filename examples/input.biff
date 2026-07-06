@@ -1,0 +1,12 @@
+let my_input = [10];
+
+let temp = 0;
+let count = 10;
+let index = 0;
+loop (count) {
+  temp = read_char();
+  my_input[index] = temp;
+  index = index + 1;
+}
+
+print_str(my_input);
