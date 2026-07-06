@@ -118,6 +118,9 @@ std::ostream &operator<<(std::ostream &out, const Token &in) {
   case TokenType::FALSE:
     out << "FALSE";
     break;
+  case TokenType::READ_CHAR:
+    out << "READ_CHAR";
+    break;
   }
 
   return out;
@@ -209,6 +212,8 @@ TokenType Lexer::parse_word(std::string_view word) {
     return TokenType::TRUE;
   } else if (word == "false") {
     return TokenType::FALSE;
+  } else if (word == "read_char") {
+    return TokenType::READ_CHAR;
   }
 
   if (is_numeric(word)) {

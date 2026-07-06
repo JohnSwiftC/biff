@@ -44,6 +44,7 @@ enum class TokenType {
   DOT,
   TRUE,
   FALSE,
+  READ_CHAR,
 };
 
 class Token {
