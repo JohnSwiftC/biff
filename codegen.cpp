@@ -884,3 +884,8 @@ void DefineStructStmt::generate(std::ostream *out, Compiler *compiler) {
     throw CompilerException(line_number, std::move(e.message));
   }
 }
+
+void DefineFunctionStmt::generate(std::ostream *out, Compiler *compiler) {
+  throw std::runtime_error(
+      "DefineFunctionStmt::generate is not implemented yet");
+}
