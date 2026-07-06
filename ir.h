@@ -165,6 +165,9 @@ public:
   void sav_index_const(size_t base, unsigned char index, size_t addr);
   void sav_val_const(size_t base, size_t index, unsigned char val);
   void sav_full_const(size_t base, unsigned char index, unsigned char val);
+
+  // reads a single char from input into addr
+  void read_char(size_t addr);
 };
 
 #endif

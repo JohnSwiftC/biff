@@ -273,6 +273,9 @@ void compile_line(IRFileWriter &w, const std::string &raw) {
     require(args, 3, "sav_full_const");
     w.sav_full_const(parse_addr(args[0]), parse_byte(args[1]),
                      parse_byte(args[2]));
+  } else if (name == "read_char") {
+    require(args, 1, "read_char");
+    w.read_char(parse_addr(args[0]));
   } else {
     throw std::runtime_error("unknown instruction: '" + name + "'");
   }

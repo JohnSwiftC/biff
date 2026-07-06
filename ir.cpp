@@ -826,3 +826,9 @@ void IRFileWriter::sav_full_const(size_t base, unsigned char index,
   shift(base, 0);
   mov(base + 3, 0);
 }
+
+void IRFileWriter::read_char(size_t addr) {
+  shift(0, addr);
+  m_out << ',';
+  shift(addr, 0);
+}
