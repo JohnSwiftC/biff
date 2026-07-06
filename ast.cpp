@@ -62,6 +62,10 @@ void UnaryExpr::display() const {
 }
 ExprType UnaryExpr::get_type() const { return ExprType::UNARY; }
 
+ReadCharExpr::ReadCharExpr(int line_number) : Expr(line_number) {}
+void ReadCharExpr::display() const { std::cout << "ReadCharExpr ()"; }
+ExprType ReadCharExpr::get_type() const { return ExprType::READ_CHAR; }
+
 AssignStmt::AssignStmt(ExprPtr target_var_expr,
                        std::optional<std::string> type_name, ExprPtr val,
                        AssignType assign_type, int line_number)

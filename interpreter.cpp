@@ -82,6 +82,17 @@ void run_bf(const std::string &program) {
       }
       break;
     }
+    case ',': {
+      // EOF leaves a zero so programs can loop until input runs out
+      int c = std::cin.get();
+      if (c == EOF) {
+        tape[ptr] = 0;
+      } else {
+        tape[ptr] = static_cast<unsigned char>(c);
+      }
+      curr_instr++;
+      break;
+    }
 
     default: {
       curr_instr = len;

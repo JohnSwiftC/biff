@@ -17,6 +17,7 @@ enum class ExprType {
   STRING,
   BINARY,
   UNARY,
+  READ_CHAR,
 };
 
 struct Expr {
@@ -97,6 +98,13 @@ struct UnaryExpr : Expr {
   ExprPtr operand;
 
   UnaryExpr(std::string op, ExprPtr operand, int line_number);
+
+  void display() const override;
+  ExprType get_type() const override;
+};
+
+struct ReadCharExpr : Expr {
+  ReadCharExpr(int line_number);
 
   void display() const override;
   ExprType get_type() const override;

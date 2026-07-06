@@ -162,6 +162,12 @@ ExprPtr Parser::parse_factor() {
 
     return var_expr;
   }
+  if (check_type(TokenType::READ_CHAR)) {
+    advance();
+    expect_type(TokenType::LPAREN, "built-in function requires open paren");
+    expect_type(TokenType::RPAREN, "read_char takes no arguments");
+    return std::make_unique<ReadCharExpr>(token.get_line());
+  }
   if (check_type(TokenType::LPAREN)) {
     advance(); // eat "("
     ExprPtr inner = parse_expression();

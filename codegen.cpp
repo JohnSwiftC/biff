@@ -132,6 +132,19 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
     return EvalResult{EvalType::TEMP, dest};
   }
 
+  if (expr->get_type() == ExprType::READ_CHAR) {
+    Scope &scope = compiler->get_scope();
+
+    // The cell doesn't need to be zeroed first: a bf read
+    // overwrites the cell rather than accumulating into it
+    size_t dest{scope.get_next_free()};
+    scope.bump_next_free(1);
+
+    *out << "READ_CHAR: " << dest << '\n';
+
+    return EvalResult{EvalType::TEMP, dest};
+  }
+
   if (expr->get_type() == ExprType::UNARY) {
     return eval_unary(out, compiler, static_cast<UnaryExpr *>(expr));
   }
