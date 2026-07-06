@@ -147,6 +147,7 @@ ExprPtr Parser::parse_factor() {
   if (check_type(TokenType::NUMBER)) {
     return std::make_unique<NumberExpr>(advance().get_val(), token.get_line());
   }
+
   if (check_type(TokenType::STRING)) {
     return std::make_unique<StringExpr>(advance().get_val(), token.get_line());
   }

@@ -121,8 +121,8 @@ std::ostream &operator<<(std::ostream &out, const Token &in) {
   case TokenType::READ_CHAR:
     out << "READ_CHAR";
     break;
-  case TokenType::APOST:
-    out << "APOST";
+  case TokenType::CHAR:
+    out << "CHAR (" << in.m_val << ")";
     break;
   }
 
@@ -139,12 +139,16 @@ bool Lexer::is_numeric(std::string_view word) {
 
 bool Lexer::is_punct(char c) {
   return c == ';' || c == '{' || c == '}' || c == '(' || c == ')' || c == '[' ||
-         c == ']' || c == '!' || c == ':' || c == ',' || c == '.' || c == '\'';
+         c == ']' || c == '!' || c == ':' || c == ',' || c == '.';
 }
 
 TokenType Lexer::parse_word(std::string_view word) {
   if (word[0] == '"') {
     return TokenType::STRING;
+  }
+
+  if (word[0] == '\'') {
+    return TokenType::CHAR;
   }
 
   if (word == ";") {
@@ -217,8 +221,6 @@ TokenType Lexer::parse_word(std::string_view word) {
     return TokenType::FALSE;
   } else if (word == "read_char") {
     return TokenType::READ_CHAR;
-  } else if (word == "'") {
-    return TokenType::APOST;
   }
 
   if (is_numeric(word)) {
