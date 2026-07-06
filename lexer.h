@@ -45,6 +45,7 @@ enum class TokenType {
   TRUE,
   FALSE,
   READ_CHAR,
+  APOST,
 };
 
 class Token {
