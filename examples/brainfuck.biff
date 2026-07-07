@@ -1,0 +1,80 @@
+let prog = [200];
+let tape = [100];
+let out = [2];
+
+let plen = 0;
+let pc = 0;
+let ptr = 0;
+
+let reading = 1;
+loop (reading) {
+  let c = read_char();
+
+  let keep = 0;
+  if (c == '+') { keep = 1; }
+  if (c == '-') { keep = 1; }
+  if (c == '<') { keep = 1; }
+  if (c == '>') { keep = 1; }
+  if (c == '[') { keep = 1; }
+  if (c == ']') { keep = 1; }
+  if (c == '.') { keep = 1; }
+  if (c == ',') { keep = 1; }
+
+  if (keep) {
+    prog[plen] = c;
+    plen = plen + 1;
+  }
+
+  let stop = 0;
+  if (c == 0) { stop = 1; }
+  if (c == '!') { stop = 1; }
+  if (plen == 200) { stop = 1; }
+
+  reading = (stop == 0) + 1;
+}
+
+let running = plen != 0;
+loop (running) {
+  let op = prog[pc];
+
+  if (op == '+') { tape[ptr] = tape[ptr] + 1; }
+  if (op == '-') { tape[ptr] = tape[ptr] - 1; }
+  if (op == '>') { ptr = ptr + 1; }
+  if (op == '<') { ptr = ptr - 1; }
+
+  if (op == '.') {
+    out[0] = tape[ptr];
+    print_str(out);
+  }
+
+  if (op == ',') { tape[ptr] = read_char(); }
+
+  if (op == '[') {
+    if (tape[ptr] == 0) {
+      let depth = 1;
+      let scanning = 1;
+      loop (scanning) {
+        pc = pc + 1;
+        if (prog[pc] == '[') { depth = depth + 1; }
+        if (prog[pc] == ']') { depth = depth - 1; }
+        scanning = (depth != 0) + 1;
+      }
+    }
+  }
+
+  if (op == ']') {
+    if (tape[ptr] != 0) {
+      let depth = 1;
+      let scanning = 1;
+      loop (scanning) {
+        pc = pc - 1;
+        if (prog[pc] == ']') { depth = depth + 1; }
+        if (prog[pc] == '[') { depth = depth - 1; }
+        scanning = (depth != 0) + 1;
+      }
+    }
+  }
+
+  pc = pc + 1;
+  running = (pc < plen) + 1;
+}
