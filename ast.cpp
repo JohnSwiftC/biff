@@ -161,10 +161,13 @@ void DefineStructStmt::display() const {
   std::cout << ")";
 }
 
-DefineFunctionStmt::DefineFunctionStmt(std::string name,
+DefineFunctionStmt::DefineFunctionStmt(std::string return_type,
+                                       std::string name,
+                                       std::vector<Argument> args,
                                        std::vector<StmtPtr> body,
                                        int line_number)
-    : Stmt(line_number), name{std::move(name)}, body{std::move(body)} {}
+    : Stmt(line_number), return_type{std::move(return_type)},
+      name{std::move(name)}, args{std::move(args)}, body{std::move(body)} {}
 void DefineFunctionStmt::display() const {
   std::cout << "DefineFunctionStmt (";
   std::cout << name << ": ";

@@ -207,10 +207,19 @@ struct DefineStructStmt : Stmt {
 };
 
 struct DefineFunctionStmt : Stmt {
+
+  struct Argument {
+    std::string arg_type;
+    std::string arg_name;
+  };
+
+  std::string return_type;
   std::string name;
+  std::vector<Argument> args;
   std::vector<StmtPtr> body;
 
-  DefineFunctionStmt(std::string name, std::vector<StmtPtr> body,
+  DefineFunctionStmt(std::string return_type, std::string name,
+                     std::vector<Argument> args, std::vector<StmtPtr> body,
                      int line_number);
 
   void display() const override;

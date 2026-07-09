@@ -389,16 +389,38 @@ StmtPtr Parser::parse_define_struct() {
 StmtPtr Parser::parse_function_definition() {
   advance(); // def token
 
+  const Token &type_token =
+      expect_type(TokenType::IDENT, "expected ident for function return type");
   const Token &name_ident =
       expect_type(TokenType::IDENT, "expected function name");
-  std::string name = name_ident.get_val();
+
+  expect_type(TokenType::LPAREN, "expected argument list");
+
+  std::vector<DefineFunctionStmt::Argument> args;
+
+  while (!check_type(TokenType::RPAREN)) {
+    const Token &arg_type_token =
+        expect_type(TokenType::IDENT, "expected argument type");
+    const Token &arg_name_token =
+        expect_type(TokenType::IDENT, "expected argument name");
+
+    args.push_back({arg_type_token.get_val(), arg_name_token.get_val()});
+
+    if (!check_type(TokenType::RPAREN)) {
+      expect_type(TokenType::COMMA, "expected comment in argument list");
+    }
+  }
+
+  expect_type(TokenType::RPAREN,
+              "expected closing parenthases in argument list");
 
   expect_type(TokenType::LBRACE, "expected opening brace");
 
   std::vector<StmtPtr> body = parse_program();
 
-  return std::make_unique<DefineFunctionStmt>(std::move(name), std::move(body),
-                                              name_ident.get_line());
+  return std::make_unique<DefineFunctionStmt>(
+      type_token.get_val(), name_ident.get_val(), std::move(args),
+      std::move(body), type_token.get_line());
 }
 
 std::string Parser::parse_type_string() {
