@@ -4,6 +4,7 @@
 #include <ostream>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 enum class TokenType {
@@ -58,10 +59,12 @@ private:
 
 public:
   Token(TokenType type, std::string val, int token_line)
-      : m_type{type}, m_val{val}, m_token_line{token_line} {}
+      : m_type{type}, m_val{std::move(val)}, m_token_line{token_line} {}
 
   const TokenType &get_type() const;
   const std::string &get_val() const;
+  // moves the value out; only call once the token is consumed
+  std::string take_val();
   int get_line() const;
 };
 

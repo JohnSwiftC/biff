@@ -131,6 +131,7 @@ std::ostream &operator<<(std::ostream &out, const Token &in) {
 
 const TokenType &Token::get_type() const { return m_type; }
 const std::string &Token::get_val() const { return m_val; }
+std::string Token::take_val() { return std::move(m_val); }
 int Token::get_line() const { return m_token_line; }
 
 bool Lexer::is_numeric(std::string_view word) {

@@ -30,7 +30,7 @@ void NumberExpr::display() const { std::cout << "NumberExpr (" << val << ")"; }
 ExprType NumberExpr::get_type() const { return ExprType::NUMBER; }
 
 StringExpr::StringExpr(std::string val, int line_number)
-    : Expr(line_number), val{val} {}
+    : Expr(line_number), val{std::move(val)} {}
 void StringExpr::display() const { std::cout << "StringExpr (" << val << ")"; }
 ExprType StringExpr::get_type() const { return ExprType::STRING; }
 

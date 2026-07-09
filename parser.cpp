@@ -46,14 +46,14 @@ Token &Parser::advance() { return m_stream[m_pointer++]; }
 ExprPtr Parser::parse_var_expr() {
   Token &var_name_ident = expect_type(TokenType::IDENT, "expected ident");
 
-  std::string name = var_name_ident.get_val();
+  std::string name = var_name_ident.take_val();
   std::vector<std::string> fields;
 
   while (check_type(TokenType::DOT)) {
     advance();
     Token &field =
         expect_type(TokenType::IDENT, "expected ident following dot operator");
-    fields.emplace_back(field.get_val());
+    fields.emplace_back(field.take_val());
   }
 
   return std::make_unique<VarExpr>(std::move(name), std::move(fields),
@@ -65,7 +65,7 @@ ExprPtr Parser::parse_expression() {
 
   while (check_type(TokenType::OR) || check_type(TokenType::AND)) {
     Token &token = advance();
-    std::string op = token.get_val();
+    std::string op = token.take_val();
     ExprPtr right = parse_comparison();
     left = std::make_unique<BinaryExpr>(std::move(op), std::move(left),
                                         std::move(right), token.get_line());
@@ -81,7 +81,7 @@ ExprPtr Parser::parse_comparison() {
          check_type(TokenType::LT) || check_type(TokenType::GT) ||
          check_type(TokenType::LEQ) || check_type(TokenType::GEQ)) {
     Token &token = advance();
-    std::string op = token.get_val();
+    std::string op = token.take_val();
     ExprPtr right = parse_additive();
     left = std::make_unique<BinaryExpr>(std::move(op), std::move(left),
                                         std::move(right), token.get_line());
@@ -95,7 +95,7 @@ ExprPtr Parser::parse_additive() {
 
   while (check_type(TokenType::ADD) || check_type(TokenType::SUB)) {
     Token &token = advance();
-    std::string op = token.get_val();
+    std::string op = token.take_val();
     ExprPtr right = parse_term();
     left = std::make_unique<BinaryExpr>(std::move(op), std::move(left),
                                         std::move(right), token.get_line());
@@ -110,7 +110,7 @@ ExprPtr Parser::parse_term() {
   while (check_type(TokenType::MUL) || check_type(TokenType::DIV) ||
          check_type(TokenType::MOD)) {
     Token &token = advance();
-    std::string op = token.get_val();
+    std::string op = token.take_val();
     ExprPtr right = parse_unary();
     left = std::make_unique<BinaryExpr>(std::move(op), std::move(left),
                                         std::move(right), token.get_line());
@@ -122,7 +122,7 @@ ExprPtr Parser::parse_term() {
 ExprPtr Parser::parse_unary() {
   if (check_type(TokenType::NOT)) {
     Token &token = advance();
-    std::string op = token.get_val();
+    std::string op = token.take_val();
     ExprPtr operand = parse_unary();
     return std::make_unique<UnaryExpr>(std::move(op), std::move(operand),
                                        token.get_line());
@@ -145,7 +145,7 @@ ExprPtr Parser::parse_factor() {
   }
 
   if (check_type(TokenType::NUMBER)) {
-    return std::make_unique<NumberExpr>(advance().get_val(), token.get_line());
+    return std::make_unique<NumberExpr>(advance().take_val(), token.get_line());
   }
 
   if (check_type(TokenType::CHAR)) {
@@ -189,7 +189,7 @@ ExprPtr Parser::parse_factor() {
   }
 
   if (check_type(TokenType::STRING)) {
-    return std::make_unique<StringExpr>(advance().get_val(), token.get_line());
+    return std::make_unique<StringExpr>(advance().take_val(), token.get_line());
   }
   if (check_type(TokenType::IDENT)) {
     ExprPtr var_expr = parse_var_expr();
@@ -260,9 +260,10 @@ StmtPtr Parser::parse_assign(AssignType type) {
 
   expect_type(TokenType::SEMICOLON, "missing semicolon");
 
+  int line_number = target_var_expr->line_number;
   return std::make_unique<AssignStmt>(std::move(target_var_expr),
                                       std::move(type_name), std::move(expr),
-                                      type, target_var_expr->line_number);
+                                      type, line_number);
 }
 
 StmtPtr Parser::parse_array_creation(std::string name, int line_number,
@@ -298,9 +299,10 @@ StmtPtr Parser::parse_array_assignment(ExprPtr target_var_expr) {
 
   expect_type(TokenType::SEMICOLON, "missing semicolon");
 
-  return std::make_unique<AssignArrayStmt>(
-      std::move(target_var_expr), std::move(index_expr), std::move(target),
-      target_var_expr->line_number);
+  int line_number = target_var_expr->line_number;
+  return std::make_unique<AssignArrayStmt>(std::move(target_var_expr),
+                                           std::move(index_expr),
+                                           std::move(target), line_number);
 }
 
 StmtPtr Parser::parse_loop() {
@@ -315,8 +317,9 @@ StmtPtr Parser::parse_loop() {
 
   std::vector<StmtPtr> body = parse_program();
 
+  int line_number = cond->line_number;
   return std::make_unique<LoopStmt>(std::move(cond), std::move(body),
-                                    cond->line_number);
+                                    line_number);
 }
 
 StmtPtr Parser::parse_if() {
@@ -332,8 +335,9 @@ StmtPtr Parser::parse_if() {
 
   std::vector<StmtPtr> body = parse_program();
 
+  int line_number = cond->line_number;
   return std::make_unique<IfStmt>(std::move(cond), std::move(body),
-                                  cond->line_number);
+                                  line_number);
 }
 
 StmtPtr Parser::parse_print_str() {
@@ -345,7 +349,8 @@ StmtPtr Parser::parse_print_str() {
   expect_type(TokenType::RPAREN, "print_str statement not closed");
   expect_type(TokenType::SEMICOLON, "missing semicolon");
 
-  return std::make_unique<PrintStrStmt>(std::move(target), target->line_number);
+  int line_number = target->line_number;
+  return std::make_unique<PrintStrStmt>(std::move(target), line_number);
 }
 
 StmtPtr Parser::parse_print_val() {
@@ -357,7 +362,8 @@ StmtPtr Parser::parse_print_val() {
   expect_type(TokenType::RPAREN, "print_val statement not closed");
   expect_type(TokenType::SEMICOLON, "missing semicolon");
 
-  return std::make_unique<PrintValStmt>(std::move(target), target->line_number);
+  int line_number = target->line_number;
+  return std::make_unique<PrintValStmt>(std::move(target), line_number);
 }
 
 StmtPtr Parser::parse_define_struct() {
@@ -375,36 +381,35 @@ StmtPtr Parser::parse_define_struct() {
     std::string type_name = parse_type_string();
     Token &field_name_ident = expect_type(
         TokenType::IDENT, "expected field name in struct definition");
-    fields.emplace_back(Field{field_name_ident.get_val(), type_name});
+    fields.emplace_back(Field{field_name_ident.take_val(), std::move(type_name)});
 
     expect_type(TokenType::COMMA, "expected comma following field entry");
   }
 
   expect_type(TokenType::RBRACE, "missing } after struct definition");
 
-  return std::make_unique<DefineStructStmt>(
-      std::move(ident.get_val()), std::move(fields), ident.get_line());
+  return std::make_unique<DefineStructStmt>(ident.take_val(), std::move(fields),
+                                            ident.get_line());
 }
 
 StmtPtr Parser::parse_function_definition() {
   advance(); // def token
 
-  const Token &type_token =
+  Token &type_token =
       expect_type(TokenType::IDENT, "expected ident for function return type");
-  const Token &name_ident =
-      expect_type(TokenType::IDENT, "expected function name");
+  Token &name_ident = expect_type(TokenType::IDENT, "expected function name");
 
   expect_type(TokenType::LPAREN, "expected argument list");
 
   std::vector<DefineFunctionStmt::Argument> args;
 
   while (!check_type(TokenType::RPAREN)) {
-    const Token &arg_type_token =
+    Token &arg_type_token =
         expect_type(TokenType::IDENT, "expected argument type");
-    const Token &arg_name_token =
+    Token &arg_name_token =
         expect_type(TokenType::IDENT, "expected argument name");
 
-    args.push_back({arg_type_token.get_val(), arg_name_token.get_val()});
+    args.push_back({arg_type_token.take_val(), arg_name_token.take_val()});
 
     if (!check_type(TokenType::RPAREN)) {
       expect_type(TokenType::COMMA, "expected comment in argument list");
@@ -418,9 +423,10 @@ StmtPtr Parser::parse_function_definition() {
 
   std::vector<StmtPtr> body = parse_program();
 
+  int line_number = type_token.get_line();
   return std::make_unique<DefineFunctionStmt>(
-      type_token.get_val(), name_ident.get_val(), std::move(args),
-      std::move(body), type_token.get_line());
+      type_token.take_val(), name_ident.take_val(), std::move(args),
+      std::move(body), line_number);
 }
 
 std::string Parser::parse_type_string() {
@@ -438,7 +444,7 @@ std::string Parser::parse_type_string() {
   }
 
   Token &ident = expect_type(TokenType::IDENT, "expected ident in type name");
-  return ident.get_val();
+  return ident.take_val();
 }
 
 Parser::Parser(std::vector<Token> stream)
