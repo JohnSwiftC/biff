@@ -1,12 +1,12 @@
+let plen = 0;
+let pc = 0;
+let ptr = 0;
+let reading = 1;
+
 let prog = [200];
 let tape = [100];
 let out = [2];
 
-let plen = 0;
-let pc = 0;
-let ptr = 0;
-
-let reading = 1;
 loop (reading) {
   let c = read_char();
 
