@@ -64,6 +64,10 @@ public:
   bool contains_type(std::string &name) const;
   Type *get_type(std::string &name);
   Type *get_builtin_integer() const;
+
+  void add_function(std::string name, DefinedFunction function_info);
+  bool contains_function(const std::string &name) const;
+  const DefinedFunction &get_function(const std::string &name) const;
 };
 
 #endif

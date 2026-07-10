@@ -114,3 +114,16 @@ Type *Compiler::get_type(std::string &name) {
 Type *Compiler::get_builtin_integer() const {
   return m_type_pool.at("Integer").get();
 }
+
+void Compiler::add_function(std::string name, DefinedFunction function_info) {
+  functions[name] = function_info;
+}
+
+bool Compiler::contains_function(const std::string &name) const {
+  return (functions.count(name) != 0);
+}
+
+const Compiler::DefinedFunction &
+Compiler::get_function(const std::string &name) const {
+  return functions.at(name);
+}
