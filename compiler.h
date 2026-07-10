@@ -41,6 +41,13 @@ private:
   std::vector<StmtPtr> m_program;
   std::unordered_map<std::string, TypePtr> m_type_pool;
 
+  struct DefinedFunction {
+    std::string return_type;
+    std::vector<DefineFunctionStmt::Argument> args;
+  };
+
+  std::unordered_map<std::string, DefinedFunction> functions;
+
 public:
   Compiler(std::vector<StmtPtr> program);
 

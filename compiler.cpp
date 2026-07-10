@@ -32,7 +32,8 @@ bool Scope::contains_var(std::string &var) const {
 }
 
 Compiler::Compiler(std::vector<StmtPtr> program)
-    : m_scope_stack{Scope()}, m_program{std::move(program)}, m_type_pool{} {
+    : m_scope_stack{Scope()}, m_program{std::move(program)}, m_type_pool{},
+      functions{} {
   m_type_pool["Integer"] = std::make_unique<IntegerType>();
 }
 Scope &Compiler::get_scope() { return m_scope_stack.back(); }
