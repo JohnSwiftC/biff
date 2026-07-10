@@ -8,6 +8,7 @@
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
+#include <unordered_set>
 
 // returns the address being referred too by a varexpr
 size_t eval_var_expr(Compiler *compiler, Expr *expr, Type **out_type) {
@@ -899,6 +900,33 @@ void DefineStructStmt::generate(std::ostream *out, Compiler *compiler) {
 }
 
 void DefineFunctionStmt::generate(std::ostream *out, Compiler *compiler) {
-  throw std::runtime_error(
-      "DefineFunctionStmt::generate is not implemented yet");
+  if (compiler->contains_function(name)) {
+    throw CompilerException(line_number,
+                            "function: " + name + " has already been defined");
+  }
+
+  std::unordered_set<std::string> used_names{name};
+
+  for (auto [type, name] : args) {
+    if (!compiler->contains_type(type)) {
+      throw CompilerException(line_number,
+                              "type: " + type + " is not currently defined");
+    }
+
+    if (used_names.count(name) != 0) {
+      throw CompilerException(line_number,
+                              "name " + name +
+                                  " cannot be reused in a function definition");
+    }
+
+    used_names.insert(name);
+  }
+
+  // some notes here for how i want to implement this.
+  // currently my IR has this virutal memory thing where ir
+  // can be reused in functions. i might copy the arguments into
+  // that frame when functions are called which could make this easy.
+  // then construct a dummy compiler with the same types but a brand new scope
+  // to properly compile the function with a new base address.
+  // idk yet though
 }
