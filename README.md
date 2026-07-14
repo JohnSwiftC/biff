@@ -66,7 +66,7 @@ Structs are accessed the same way they would be in any C-like language, with the
 
 ## Arithmetic and Comparison Operators
 
-Biff supports all of the normal operators you would find in a standard language: `+`, `-`, `*`, `/`, and `%`. Notable behavior exists within the logical operators, however. Operators like `<`, `<=`, `>`, `>=`, `==`, and `!=` will either evaluate to 1 or 0. The unary `!` operator will flip 0 to 1, and any non-zero value to 0. (This is due to control flow, as shown later)
+Biff supports all of the normal operators you would find in a standard language: `+`, `-`, `*`, `/`, and `%`. Notable behavior exists within the logical operators, however. Operators like `<`, `<=`, `>`, `>=`, `==`, `!=`, `||`, and `&&` will either evaluate to 1 or 0. The unary `!` operator will flip 0 to 1, and any non-zero value to 0. (This is due to control flow, as shown later)
 
 ```rust
 let a = 12;
@@ -173,11 +173,13 @@ Call frames are fully cleaned up: after a call returns, every cell it used is ze
 
 ## Built-In Functions
 
-Biff has two built-in functions, `print_str` and `print_val`. `print_str` takes a single string argument, and may not be anything besides a single variable argument.
+Biff has three built-in functions, `print_str`, `print_val`, and `read_char`. `print_str` takes a single string argument, and may not be anything besides a single variable argument.
 
 > Note: print_str should only be used with variables that have been defined as a string literal. Anything otherwise is UB and will almost definitely destroy your program.
 
 `print_val` can take any valid expression as an argument, and it will display the value as a string (think itoa).
+
+`read_char` reads a single character, and can be called in expressions to read a character into a variable.
 
 ## Examples
 
