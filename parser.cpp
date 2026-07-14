@@ -19,6 +19,13 @@ bool Parser::check_type(const TokenType &type) const {
   return (type == m_stream[m_pointer].get_type());
 }
 
+bool Parser::check_next_type(const TokenType &type) const {
+  if (m_pointer + 1 >= m_size) {
+    return false;
+  }
+  return (type == m_stream[m_pointer + 1].get_type());
+}
+
 bool Parser::at_end() const { return m_pointer >= m_size; }
 
 const Token &Parser::peek() const { return m_stream[m_pointer]; }
@@ -58,6 +65,28 @@ ExprPtr Parser::parse_var_expr() {
 
   return std::make_unique<VarExpr>(std::move(name), std::move(fields),
                                    var_name_ident.get_line());
+}
+
+ExprPtr Parser::parse_call_expr() {
+  Token &name_ident = expect_type(TokenType::IDENT, "expected function name");
+
+  expect_type(TokenType::LPAREN, "expected argument list");
+
+  std::vector<ExprPtr> args;
+
+  while (!check_type(TokenType::RPAREN)) {
+    args.push_back(parse_expression());
+
+    if (!check_type(TokenType::RPAREN)) {
+      expect_type(TokenType::COMMA, "expected comma in argument list");
+    }
+  }
+
+  expect_type(TokenType::RPAREN,
+              "expected closing parenthases in argument list");
+
+  return std::make_unique<CallExpr>(name_ident.take_val(), std::move(args),
+                                    name_ident.get_line());
 }
 
 ExprPtr Parser::parse_expression() {
@@ -192,6 +221,10 @@ ExprPtr Parser::parse_factor() {
     return std::make_unique<StringExpr>(advance().take_val(), token.get_line());
   }
   if (check_type(TokenType::IDENT)) {
+    if (check_next_type(TokenType::LPAREN)) {
+      return parse_call_expr();
+    }
+
     ExprPtr var_expr = parse_var_expr();
     if (check_type(TokenType::LBRACKET)) {
       advance();
@@ -404,12 +437,11 @@ StmtPtr Parser::parse_function_definition() {
   std::vector<DefineFunctionStmt::Argument> args;
 
   while (!check_type(TokenType::RPAREN)) {
-    Token &arg_type_token =
-        expect_type(TokenType::IDENT, "expected argument type");
+    std::string arg_type = parse_type_string();
     Token &arg_name_token =
         expect_type(TokenType::IDENT, "expected argument name");
 
-    args.push_back({arg_type_token.take_val(), arg_name_token.take_val()});
+    args.push_back({std::move(arg_type), arg_name_token.take_val()});
 
     if (!check_type(TokenType::RPAREN)) {
       expect_type(TokenType::COMMA, "expected comment in argument list");
@@ -427,6 +459,26 @@ StmtPtr Parser::parse_function_definition() {
   return std::make_unique<DefineFunctionStmt>(
       type_token.take_val(), name_ident.take_val(), std::move(args),
       std::move(body), line_number);
+}
+
+StmtPtr Parser::parse_call_stmt() {
+  ExprPtr call = parse_call_expr();
+
+  expect_type(TokenType::SEMICOLON, "missing semicolon");
+
+  int line_number = call->line_number;
+  return std::make_unique<CallStmt>(std::move(call), line_number);
+}
+
+StmtPtr Parser::parse_return() {
+  Token &return_token = expect_type(TokenType::RETURN, "failed return token");
+
+  ExprPtr val = parse_expression();
+
+  expect_type(TokenType::SEMICOLON, "missing semicolon");
+
+  return std::make_unique<ReturnStmt>(std::move(val),
+                                      return_token.get_line());
 }
 
 std::string Parser::parse_type_string() {
@@ -464,7 +516,11 @@ std::vector<StmtPtr> Parser::parse_program() {
       break;
 
     case TokenType::IDENT:
-      program.push_back(parse_assign(AssignType::SET));
+      if (check_next_type(TokenType::LPAREN)) {
+        program.push_back(parse_call_stmt());
+      } else {
+        program.push_back(parse_assign(AssignType::SET));
+      }
       break;
 
     case TokenType::LOOP:
@@ -489,6 +545,10 @@ std::vector<StmtPtr> Parser::parse_program() {
 
     case TokenType::DEF:
       program.push_back(parse_function_definition());
+      break;
+
+    case TokenType::RETURN:
+      program.push_back(parse_return());
       break;
 
       // This only breaks parsing

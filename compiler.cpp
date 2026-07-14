@@ -52,7 +52,12 @@ void Compiler::generate_program(std::ostream *out) {
 }
 
 bool Compiler::contains_var(std::string &name) const {
-  for (size_t i{m_scope_stack.size()}; i-- > 0;) {
+  // when a function is being inlined, lookups stop at its frame
+  // scope. bodies only see their own params and locals, never
+  // whatever happens to be live at the call site
+  size_t barrier{m_call_stack.empty() ? 0 : m_call_stack.back().scope_barrier};
+
+  for (size_t i{m_scope_stack.size()}; i-- > barrier;) {
     if (m_scope_stack[i].contains_var(name)) {
       return true;
     }
@@ -62,7 +67,9 @@ bool Compiler::contains_var(std::string &name) const {
 }
 
 const Scope::Variable &Compiler::get_var(std::string &name) const {
-  for (size_t i{m_scope_stack.size()}; i-- > 0;) {
+  size_t barrier{m_call_stack.empty() ? 0 : m_call_stack.back().scope_barrier};
+
+  for (size_t i{m_scope_stack.size()}; i-- > barrier;) {
     if (m_scope_stack[i].contains_var(name)) {
       return m_scope_stack[i].get_var(name);
     }
@@ -127,3 +134,34 @@ const Compiler::DefinedFunction &
 Compiler::get_function(const std::string &name) const {
   return functions.at(name);
 }
+
+void Compiler::begin_call(std::string name, bool returns_value) {
+  add_scope();
+  m_call_stack.push_back(ActiveCall{std::move(name), m_scope_stack.size() - 1,
+                                    returns_value, false, 0});
+}
+
+void Compiler::end_call() {
+  remove_scope();
+  m_call_stack.pop_back();
+}
+
+Compiler::ActiveCall *Compiler::current_call() {
+  if (m_call_stack.empty()) {
+    return nullptr;
+  }
+
+  return &m_call_stack.back();
+}
+
+bool Compiler::call_in_progress(const std::string &name) const {
+  for (const ActiveCall &call : m_call_stack) {
+    if (call.name == name) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+size_t Compiler::scope_depth() const { return m_scope_stack.size(); }

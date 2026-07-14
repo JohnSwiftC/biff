@@ -146,6 +146,20 @@ EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr) {
     return EvalResult{EvalType::TEMP, dest};
   }
 
+  if (expr->get_type() == ExprType::CALL) {
+    CallExpr *call = static_cast<CallExpr *>(expr);
+    std::optional<size_t> ret = generate_call(out, compiler, call);
+
+    if (!ret) {
+      throw CompilerException(call->line_number,
+                              "function: " + call->name +
+                                  " does not return a value and cannot be "
+                                  "used in an expression");
+    }
+
+    return EvalResult{EvalType::TEMP, *ret};
+  }
+
   if (expr->get_type() == ExprType::UNARY) {
     return eval_unary(out, compiler, static_cast<UnaryExpr *>(expr));
   }
@@ -905,6 +919,17 @@ void DefineFunctionStmt::generate(std::ostream *out, Compiler *compiler) {
                             "function: " + name + " has already been defined");
   }
 
+  if (compiler->current_call()) {
+    throw CompilerException(line_number,
+                            "functions cannot be defined inside functions");
+  }
+
+  if (return_type != "Integer" && return_type != "None") {
+    throw CompilerException(line_number,
+                            "functions may only return Integer, or None for "
+                            "no return value");
+  }
+
   std::unordered_set<std::string> used_names{name};
 
   for (auto [type, name] : args) {
@@ -922,11 +947,239 @@ void DefineFunctionStmt::generate(std::ostream *out, Compiler *compiler) {
     used_names.insert(name);
   }
 
-  // some notes here for how i want to implement this.
-  // currently my IR has this virutal memory thing where ir
-  // can be reused in functions. i might copy the arguments into
-  // that frame when functions are called which could make this easy.
-  // then construct a dummy compiler with the same types but a brand new scope
-  // to properly compile the function with a new base address.
-  // idk yet though
+  // definitions emit nothing on their own. the body is compiled
+  // fresh at every call site by generate_call, which is what lets
+  // parameters alias the caller's cells instead of copying
+  compiler->add_function(name, Compiler::DefinedFunction{return_type, args,
+                                                         &body});
+}
+
+std::optional<size_t> generate_call(std::ostream *out, Compiler *compiler,
+                                    CallExpr *call) {
+  if (!compiler->contains_function(call->name)) {
+    throw CompilerException(call->line_number, "function: " + call->name +
+                                                   " has not been defined");
+  }
+
+  if (compiler->call_in_progress(call->name)) {
+    throw CompilerException(call->line_number,
+                            "call to function: " + call->name +
+                                " while it is already being compiled. "
+                                "recursion is not supported");
+  }
+
+  const Compiler::DefinedFunction &fn = compiler->get_function(call->name);
+
+  if (call->args.size() != fn.args.size()) {
+    throw CompilerException(call->line_number,
+                            "function: " + call->name + " takes " +
+                                std::to_string(fn.args.size()) +
+                                " arguments, " +
+                                std::to_string(call->args.size()) + " given");
+  }
+
+  size_t frame_base{compiler->get_scope().get_next_free()};
+
+  // Bind each parameter to an address, evaluating in the caller's
+  // scope. Plain variables alias the caller's cell directly, so the
+  // body reads and writes the caller's memory. Anything else must be
+  // an Integer and is materialized into a fresh frame cell
+  std::vector<Scope::Variable> bindings;
+  bindings.reserve(call->args.size());
+
+  for (size_t i{0}; i < call->args.size(); ++i) {
+    std::string param_type_name = fn.args[i].arg_type;
+    Type *param_type = compiler->get_type(param_type_name);
+    Expr *arg = call->args[i].get();
+
+    if (arg->get_type() == ExprType::VAR) {
+      VarExpr *var_arg = static_cast<VarExpr *>(arg);
+
+      size_t addr{};
+      Type *arg_type = nullptr;
+
+      // whole structs are legal arguments, so bypass the
+      // must-access-structs-by-field check in eval_var_expr
+      // when there are no fields to walk
+      if (var_arg->fields.size() == 0) {
+        if (!compiler->contains_var(var_arg->name)) {
+          throw CompilerException(var_arg->line_number,
+                                  "variable has not yet been defined");
+        }
+
+        const Scope::Variable &var = compiler->get_var(var_arg->name);
+        addr = var.addr;
+        arg_type = var.type;
+      } else {
+        addr = eval_var_expr(compiler, var_arg, &arg_type);
+      }
+
+      if (arg_type != param_type) {
+        throw CompilerException(var_arg->line_number,
+                                "type mismatch on argument: " +
+                                    fn.args[i].arg_name + " in call to " +
+                                    call->name);
+      }
+
+      bindings.push_back(Scope::Variable{addr, param_type});
+      continue;
+    }
+
+    if (param_type != compiler->get_builtin_integer()) {
+      throw CompilerException(
+          arg->line_number,
+          "arguments of array or struct type must be plain variables, "
+          "as they are passed by reference");
+    }
+
+    Scope &scope = compiler->get_scope();
+    size_t slot{scope.get_next_free()};
+
+    EvalResult result = eval(out, compiler, arg);
+
+    // consolidate into the slot, which sits at the old next_free
+    // and is therefore already zero
+    switch (result.type) {
+    case EvalType::CONST: {
+      *out << "MOV: " << slot << ", " << result.val << '\n';
+      break;
+    }
+
+    case EvalType::ADDRESS: {
+      *out << "ADD: " << slot << ", " << result.val << '\n';
+      break;
+    }
+
+    case EvalType::TEMP: {
+      if (result.val != slot) {
+        *out << "ADD: " << slot << ", " << result.val << '\n';
+        *out << "MOV: " << result.val << ", 0\n";
+      }
+      break;
+    }
+    }
+
+    scope.set_next_free(slot + 1);
+    bindings.push_back(Scope::Variable{slot, param_type});
+  }
+
+  bool returns_value{fn.return_type == "Integer"};
+
+  compiler->begin_call(call->name, returns_value);
+
+  Scope &frame = compiler->get_scope();
+  for (size_t i{0}; i < bindings.size(); ++i) {
+    frame.set_var(fn.args[i].arg_name, bindings[i]);
+  }
+
+  for (const StmtPtr &stmt : *fn.body) {
+    if (compiler->current_call()->has_returned) {
+      throw CompilerException(stmt->line_number,
+                              "return must be the final statement in a "
+                              "function body");
+    }
+
+    stmt->generate(out, compiler);
+  }
+
+  Compiler::ActiveCall *finished = compiler->current_call();
+
+  if (returns_value && !finished->has_returned) {
+    throw CompilerException(call->line_number,
+                            "function: " + call->name +
+                                " must end with a return statement");
+  }
+
+  std::optional<size_t> ret;
+  if (finished->has_returned) {
+    ret = finished->ret_addr;
+  }
+
+  size_t frame_end{compiler->get_scope().get_next_free()};
+  compiler->end_call();
+
+  // The frame is dead, but named locals and materialized args leave
+  // junk behind. Wipe everything except the return cell so the
+  // zero-invariant holds again and the frame can be fully reclaimed
+  for (size_t addr{frame_base}; addr < frame_end; ++addr) {
+    if (ret && addr == *ret) {
+      continue;
+    }
+
+    *out << "MOV: " << addr << ", 0\n";
+  }
+
+  compiler->get_scope().set_next_free(ret ? *ret + 1 : frame_base);
+
+  return ret;
+}
+
+void ReturnStmt::generate(std::ostream *out, Compiler *compiler) {
+  Compiler::ActiveCall *active_call = compiler->current_call();
+
+  if (!active_call) {
+    throw CompilerException(line_number,
+                            "return used outside of a function body");
+  }
+
+  if (!active_call->returns_value) {
+    throw CompilerException(line_number,
+                            "function: " + active_call->name +
+                                " is declared None and cannot return a value");
+  }
+
+  // a return buried in an if or loop would need every statement
+  // after it fenced off behind a flag to actually skip anything,
+  // so only the top level of the body is allowed
+  if (compiler->scope_depth() - 1 != active_call->scope_barrier) {
+    throw CompilerException(line_number,
+                            "return must be at the top level of a function "
+                            "body");
+  }
+
+  Scope &scope = compiler->get_scope();
+  size_t snapshot{scope.get_next_free()};
+
+  EvalResult result = eval(out, compiler, val.get());
+
+  switch (result.type) {
+  case EvalType::CONST: {
+    *out << "MOV: " << snapshot << ", " << result.val << '\n';
+    break;
+  }
+
+  case EvalType::ADDRESS: {
+    // the snapshot cell is above next_free and therefore
+    // zero, so the ADD acts as a copy
+    *out << "ADD: " << snapshot << ", " << result.val << '\n';
+    break;
+  }
+
+  case EvalType::TEMP: {
+    if (result.val != snapshot) {
+      *out << "ADD: " << snapshot << ", " << result.val << '\n';
+      *out << "MOV: " << result.val << ", 0\n";
+    }
+    break;
+  }
+  }
+
+  scope.set_next_free(snapshot + 1);
+
+  active_call->ret_addr = snapshot;
+  active_call->has_returned = true;
+}
+
+void CallStmt::generate(std::ostream *out, Compiler *compiler) {
+  size_t snapshot{compiler->get_scope().get_next_free()};
+
+  std::optional<size_t> ret =
+      generate_call(out, compiler, static_cast<CallExpr *>(call.get()));
+
+  // the frame is already wiped, so zeroing the discarded return
+  // value reclaims the whole call
+  if (ret) {
+    *out << "MOV: " << *ret << ", 0\n";
+    compiler->get_scope().set_next_free(snapshot);
+  }
 }

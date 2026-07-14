@@ -103,6 +103,9 @@ std::ostream &operator<<(std::ostream &out, const Token &in) {
   case TokenType::DEF:
     out << "DEF";
     break;
+  case TokenType::RETURN:
+    out << "RETURN";
+    break;
   case TokenType::STRUCT:
     out << "STRUCT";
     break;
@@ -210,6 +213,8 @@ TokenType Lexer::parse_word(std::string_view word) {
     return TokenType::PRINT_VAL;
   } else if (word == "def") {
     return TokenType::DEF;
+  } else if (word == "return") {
+    return TokenType::RETURN;
   } else if (word == "struct") {
     return TokenType::STRUCT;
   } else if (word == ",") {

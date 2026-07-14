@@ -18,6 +18,7 @@ enum class ExprType {
   BINARY,
   UNARY,
   READ_CHAR,
+  CALL,
 };
 
 struct Expr {
@@ -105,6 +106,16 @@ struct UnaryExpr : Expr {
 
 struct ReadCharExpr : Expr {
   ReadCharExpr(int line_number);
+
+  void display() const override;
+  ExprType get_type() const override;
+};
+
+struct CallExpr : Expr {
+  std::string name;
+  std::vector<ExprPtr> args;
+
+  CallExpr(std::string name, std::vector<ExprPtr> args, int line_number);
 
   void display() const override;
   ExprType get_type() const override;
@@ -221,6 +232,26 @@ struct DefineFunctionStmt : Stmt {
   DefineFunctionStmt(std::string return_type, std::string name,
                      std::vector<Argument> args, std::vector<StmtPtr> body,
                      int line_number);
+
+  void display() const override;
+  void generate(std::ostream *out, Compiler *compiler) override;
+};
+
+// A bare function call in statement position. Any
+// return value is discarded and its cell reclaimed
+struct CallStmt : Stmt {
+  ExprPtr call;
+
+  CallStmt(ExprPtr call, int line_number);
+
+  void display() const override;
+  void generate(std::ostream *out, Compiler *compiler) override;
+};
+
+struct ReturnStmt : Stmt {
+  ExprPtr val;
+
+  ReturnStmt(ExprPtr val, int line_number);
 
   void display() const override;
   void generate(std::ostream *out, Compiler *compiler) override;

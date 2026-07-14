@@ -66,6 +66,20 @@ ReadCharExpr::ReadCharExpr(int line_number) : Expr(line_number) {}
 void ReadCharExpr::display() const { std::cout << "ReadCharExpr ()"; }
 ExprType ReadCharExpr::get_type() const { return ExprType::READ_CHAR; }
 
+CallExpr::CallExpr(std::string name, std::vector<ExprPtr> args, int line_number)
+    : Expr(line_number), name{std::move(name)}, args{std::move(args)} {}
+void CallExpr::display() const {
+  std::cout << "CallExpr (" << name << ": ";
+
+  for (const ExprPtr &arg : args) {
+    arg->display();
+    std::cout << ", ";
+  }
+
+  std::cout << ")";
+}
+ExprType CallExpr::get_type() const { return ExprType::CALL; }
+
 AssignStmt::AssignStmt(ExprPtr target_var_expr,
                        std::optional<std::string> type_name, ExprPtr val,
                        AssignType assign_type, int line_number)
@@ -177,5 +191,21 @@ void DefineFunctionStmt::display() const {
     std::cout << ", ";
   }
 
+  std::cout << ")";
+}
+
+CallStmt::CallStmt(ExprPtr call, int line_number)
+    : Stmt(line_number), call{std::move(call)} {}
+void CallStmt::display() const {
+  std::cout << "CallStmt (";
+  call->display();
+  std::cout << ")";
+}
+
+ReturnStmt::ReturnStmt(ExprPtr val, int line_number)
+    : Stmt(line_number), val{std::move(val)} {}
+void ReturnStmt::display() const {
+  std::cout << "ReturnStmt (";
+  val->display();
   std::cout << ")";
 }

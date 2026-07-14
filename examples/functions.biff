@@ -1,0 +1,46 @@
+def Integer max(Integer a, Integer b) {
+  let result = a;
+  if (b > a) {
+    result = b;
+  }
+  return result;
+}
+
+def None bump(Integer x) {
+  x = x + 1;
+}
+
+def None fill([5] arr, Integer start) {
+  let i = 0;
+  loop (5 - i) {
+    arr[i] = start + i;
+    i = i + 1;
+  }
+}
+
+def Integer sum([5] arr) {
+  let total = 0;
+  let i = 0;
+  loop (5 - i) {
+    total = total + arr[i];
+    i = i + 1;
+  }
+  return total;
+}
+
+let a = 10;
+let b = 4;
+
+let biggest = max(a, b) + max(1, 2);
+print_val(biggest);
+
+bump(a);
+bump(a);
+print_val(a);
+
+bump(b + 0);
+print_val(b);
+
+let nums = [5];
+fill(nums, 1);
+print_val(sum(nums));

@@ -120,6 +120,57 @@ loop (a * 2) {
 
 If and loop statements both create their own scope. In these statements, outer variables can still be accessed and modified. Declaring a new variable in the body will shadow any outside variables of the same name. Once outside of an if or loop body, variables created within them will no longer be accessible.
 
+## Functions
+
+Functions are defined with the `def` keyword, followed by a return type, a name, and a typed argument list. The return type must be `Integer`, or `None` for functions that don't return anything. Argument types can be `Integer`, a sized array like `[10]`, or any defined struct type.
+
+```rust
+def Integer add(Integer a, Integer b) {
+  return a + b;
+}
+
+def None fill([4] arr, Integer val) {
+  let i = 0;
+  loop (4 - i) {
+    arr[i] = val;
+    i = i + 1;
+  }
+}
+
+let x = 3;
+let sum = add(x, 4) * 2;
+fill(my_array, sum);
+```
+
+`Integer` functions can be called anywhere an expression is expected. Any function can also be called as a bare statement, which discards the return value.
+
+### Pass by reference
+
+When an argument is a plain variable (including struct fields like `s.x`), the parameter becomes an alias for the caller's variable: anything the function does to it happens to the caller's variable too. This is what allows arrays and structs to be passed without copying, and it means a function can modify its arguments.
+
+```rust
+def None bump(Integer x) {
+  x = x + 1;
+}
+
+let a = 1;
+bump(a); // a is now 2
+```
+
+Watch out: this also applies to `loop (param)` inside a body, which will count the caller's variable down to zero. To pass a copy instead, pass an expression: `bump(a + 0)` leaves `a` alone. Arguments that aren't plain variables are copied into a fresh cell and only work for `Integer` parameters.
+
+### Rules
+
+Under the hood there are no calls at all: the function body is compiled again at every call site (brainfuck has no jumps, so this is what any approach would boil down to). A few rules follow from that:
+
+- **No recursion.** Direct or mutual recursion is a compile error.
+- A function must be defined before the first statement that calls it.
+- `return expr;` must be the *last* statement of the body. No early returns; write `let r = 0; if (cond) { r = 1; } return r;` instead.
+- Function bodies are isolated: they see only their parameters and locals, never the caller's variables. Share state by passing it in.
+- Each call site pays the full code size of the body, so a big function called in ten places emits its code ten times.
+
+Call frames are fully cleaned up: after a call returns, every cell it used is zeroed and reclaimed.
+
 ## Built-In Functions
 
 Biff has two built-in functions, `print_str` and `print_val`. `print_str` takes a single string argument, and may not be anything besides a single variable argument.

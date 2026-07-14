@@ -40,6 +40,7 @@ enum class TokenType {
   PRINT_STR,
   PRINT_VAL,
   DEF,
+  RETURN,
   STRUCT,
   COMMA,
   DOT,

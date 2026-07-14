@@ -2,6 +2,7 @@
 #define CODEGEN_H
 
 #include <cstddef>
+#include <optional>
 #include <ostream>
 
 #include "ast.h"
@@ -37,6 +38,17 @@ size_t eval_var_expr(Compiler *compiler, Expr *var_expr,
 // caller with Scope::set_next_free once the result is consumed
 EvalResult eval(std::ostream *out, Compiler *compiler, Expr *expr);
 EvalResult eval_unary(std::ostream *out, Compiler *compiler, UnaryExpr *unary);
+
+// Inlines a function's body at the current position in the output.
+// Plain variable arguments alias the caller's cells (pass by
+// reference), any other expression is materialized into a fresh
+// cell (pass by value). Returns the address holding the return
+// value, or nullopt for functions that don't produce one. On exit,
+// every frame cell except the return cell has been zeroed and
+// next_free points just past the return cell (or back at the frame
+// base when there is none), so the zero-invariant holds
+std::optional<size_t> generate_call(std::ostream *out, Compiler *compiler,
+                                    CallExpr *call);
 void handle_new_struct(Compiler *compiler, VarExpr* var_expr, Type* struct_type, Expr* val_expr);
 
 #endif

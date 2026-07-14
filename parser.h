@@ -15,6 +15,8 @@ private:
 
   bool check(const Token &token) const;
   bool check_type(const TokenType &type) const;
+  // looks one token past the current pointer
+  bool check_next_type(const TokenType &type) const;
   bool at_end() const;
 
   const Token &peek() const;
@@ -27,6 +29,7 @@ private:
   Token &advance();
 
   ExprPtr parse_var_expr();
+  ExprPtr parse_call_expr();
   ExprPtr parse_expression();
   ExprPtr parse_comparison();
   ExprPtr parse_additive();
@@ -45,6 +48,8 @@ private:
   StmtPtr parse_print_val();
   StmtPtr parse_define_struct();
   StmtPtr parse_function_definition();
+  StmtPtr parse_call_stmt();
+  StmtPtr parse_return();
 
   // Types may contain [] characters, which dont lex
   // into a single ident. this hadles this case and returns the string
