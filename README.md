@@ -1,5 +1,7 @@
 # biff
 
+> This repo is dedicated to SIGHORSE 2026!
+
 A language that compiles to brainfuck.
 
 # Guide
